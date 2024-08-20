@@ -1,45 +1,41 @@
 library(tidyverse)
 
 
-##----------- Renninfos einlesen ---------------------------------------------##
+##------------- Import raceinfos ---------------------------------------------##
 
-raceinfos_csvs <- list.files(
-  paste0(
-    "C:/Users/chris/Documents/HorseRacing/01Galopp_ver2",
-    "/01DataCollection/01RaceInfos/01Rohdaten"  
-  ),
-  pattern = "\\.csv$",
-  full.names = TRUE,
-  recursive = TRUE
+
+# set working directory to directory in which script is stored
+script_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(script_path)
+
+# Fetch paths of csv files with race infos
+rinfos_csvs_path <- list.files(
+  "../data/raw/race_infos", pattern = "\\.csv$", 
+  full.names = TRUE, recursive = TRUE
 )
 
-
 raceinfos_df_list <- lapply(
-  raceinfos_csvs, 
+  rinfos_csvs_path, 
   read.csv,
   header = FALSE,
   col.names = c(
-    'gr_raceid', 'gr_course', 'race_name', 'gr_title', 
-    'race_no', 'date_time', 'race_category', 'race_distance', 
-    'prizemoney_cent', 'going', 'description', 'facts', 
-    'race_time_secs', 'zw', 'dw', 'vw'
+    'dg_raceid', 'dg_course', 'race_name', 'dg_title', 'race_no', 'date_time', 
+    'race_category', 'race_distance', 'prizemoney_cent', 'going', 'description', 
+    'facts', 'race_time_secs', 'exacta', 'trifecta', 'superfecta'
   ),
   colClasses = c(rep("character", 16)),
   encoding = "utf-8"
 )
 
-# raceinfos zu einem data frame verbinden
+# combine list of dfs into on data frame
 raceinfos <- bind_rows(raceinfos_df_list)
 
 
-## raceinfos-Spalten auf Konsistenz überprüfen
-
-# gr_raceid: Zeilen rausfiltern die nicht mit "1" in gr_raceid beginnen
-raceinfos_grraceid_nostartwith_1 <- raceinfos %>% 
-  filter(!grepl("^1", gr_raceid))
+##------------- Checking raceinfos columns for consistency -------------------##
+##-------------------and some minor cleaning tasks ---------------------------##
 
 # gr_course
-sort(unique(raceinfos$gr_course))
+sort(unique(raceinfos$dg_course))
 
 # race_no
 sort(as.integer(unique(raceinfos$race_no)))
@@ -47,6 +43,7 @@ sort(as.integer(unique(raceinfos$race_no)))
 # date_time
 raceinfos_datetime_nostartwith_20 <- raceinfos %>% 
   filter(!grepl("^20", date_time))
+unique(nchar(raceinfos$date_time))
 
 # race_category
 sort(unique(raceinfos$race_category))
@@ -61,9 +58,13 @@ sort(as.integer(unique(raceinfos$prizemoney_cent)))
 sort(unique(raceinfos$going))
 
 # description
-raceinfos %>% 
+unusual_description <- raceinfos %>% 
   filter(!grepl("^Für", description))
-# Fehlende Infos ergänzen:
+innenbahn <- raceinfos %>% 
+  filter(grepl("Innenbahn", description))
+raceinfos$inner_track <- grepl("Innenbahn", raceinfos$description)
+raceinfos$description <- gsub("^Innenbahn - ", "", raceinfos$description)
+# Add missing descriptions:
 # Berlin-Hoppegarten R2, 2003-05-18
 desc_string <- paste0(
   "Für 3-jährige und ältere Pferde, Gew. 58,0 kg. Pferden, die 2003 kein ", 
@@ -71,7 +72,7 @@ desc_string <- paste0(
   "drittes Platzgeld, 2 kg erl."
 )
 raceinfos$description <- ifelse(
-  raceinfos$gr_raceid == 1195815, desc_string, raceinfos$description
+  raceinfos$dg_raceid == 1195815, desc_string, raceinfos$description
 )
 # Hannover R1, 2004-09-12
 desc_string <- paste0(
@@ -80,7 +81,7 @@ desc_string <- paste0(
   "Halbblutpferden, die keinen Geldpreis von 400 € gewonnen haben 2 kg erl."
 )
 raceinfos$description <- ifelse(
-  raceinfos$gr_raceid == 1203938, desc_string, raceinfos$description
+  raceinfos$dg_raceid == 1203938, desc_string, raceinfos$description
 )
 
 # facts
@@ -93,63 +94,49 @@ raceinfos %>%
 raceinfos %>% 
   filter(grepl(",", race_time_secs))
 
-# zw
+# exacta
 raceinfos %>% 
-  filter(!grepl("^[0-9]", zw) & !grepl("^$", zw))
+  filter(!grepl("^[0-9]", exacta) & !grepl("^$", exacta))
 raceinfos %>% 
-  filter(grepl(",", zw))
+  filter(grepl(",", exacta))
 
-# dw
+# trifecta
 raceinfos %>% 
-  filter(!grepl("^[0-9]", dw) & !grepl("^$", dw))
+  filter(!grepl("^[0-9]", trifecta) & !grepl("^$", trifecta))
 raceinfos %>% 
-  filter(grepl(",", dw))
+  filter(grepl(",", trifecta))
 
-# vw
+# superfecta
 raceinfos %>% 
-  filter(!grepl("^[0-9]", vw) & !grepl("^$", vw))
+  filter(!grepl("^[0-9]", superfecta) & !grepl("^$", superfecta))
 raceinfos %>% 
-  filter(grepl(",", vw))
-
-
-# Spalten: Data Types anpassen
-# gr_raceid --> integer
-# gr_course --> character
-# race_name --> character
-# gr_title --> character
-# race_no --> integer
-# date_time --> date
-# race_category --> character
-# race_distance --> numeric
-# prizemoney_cent --> integer
-# going --> character
-# description --> character
-# facts --> character
-# race_time_secs numeric
-# zw --> numeric
-# dw --> numeric
-# vw --> numeric
+  filter(grepl(",", superfecta))
 
 # change column data types to integer
 raceinfos <- raceinfos %>% 
-  mutate(across(c(gr_raceid, race_no, prizemoney_cent), as.integer))
+  mutate(across(c(dg_raceid, race_no, prizemoney_cent), as.integer))
 # change column data types to numeric
 raceinfos <- raceinfos %>% 
-  mutate(across(c(race_distance, race_time_secs, zw, dw, vw), as.numeric))
+  mutate(
+    across(
+      c(race_distance, race_time_secs, exacta, trifecta, superfecta), 
+      as.numeric
+    )
+  )
 
-# Duplikate suchen
+# search duplicates
 duplicates <- raceinfos %>% 
-  group_by(gr_raceid) %>% 
+  group_by(dg_raceid) %>% 
   filter(n() > 1) %>% 
   ungroup()
 
 
-# aufräumne
+# remove unnecessary variables
 rm(list = setdiff(ls(), "raceinfos"))
 
 
 
-##----------- Rennresultate einlesen -----------------------------------------##
+##----------- Import race results --------------------------------------------##
 
 raceresults_csvs_list <- list.files(
   paste0(
