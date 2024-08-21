@@ -130,7 +130,6 @@ duplicates <- raceinfos %>%
   filter(n() > 1) %>% 
   ungroup()
 
-
 # remove unnecessary variables
 rm(list = setdiff(ls(), "raceinfos"))
 
@@ -138,27 +137,21 @@ rm(list = setdiff(ls(), "raceinfos"))
 
 ##----------- Import race results --------------------------------------------##
 
-raceresults_csvs_list <- list.files(
-  paste0(
-    "C:/Users/chris/Documents/HorseRacing/01Galopp_ver2/", 
-    "01DataCollection/02RaceResults/01Rohdaten"
-  ),
-  pattern = "\\.csv$",
+# Fetch paths of csv files with race infos
+rresults_csvs_path <- list.files(
+  "../data/raw/race_results", pattern = "\\.csv$",
   full.names = TRUE,
   recursive = TRUE
 )
 
-# Rohdaten mit Rennresultaten laden (csvs mit "," als sep)
-# odds als col_character() einlesen und später umwandeln
+# create list with results data frames
 raceresults_df_list <- lapply(
-  raceresults_csvs_list,
+  rresults_csvs_path,
   read_delim, delim = ",",
   col_names = c(
-    "gr_raceid", "position", "pferd", "gr_horseid",
-    "pferd_infos", "abstammung", "hosex", "hoage",
-    "hono", "hobox", "abstand", "gewinn", 
-    "besitzer", "trainer", "jockey", "gewicht",
-    "odds"
+    "dg_raceid", "position", "horse", "dg_horseid", "horse_infos", "pedigree", 
+    "hosex", "hoage", "hono", "hostall", "dist_btn", "hoprize", 
+    "owner", "trainer", "jockey", "weight", "odds"
   ),
   col_types = list(
     col_integer(), col_character(), col_character(), col_integer(),
@@ -170,95 +163,40 @@ raceresults_df_list <- lapply(
   locale = locale(decimal_mark = ",")
 )
 
+# combine results dfs
 raceresults <- bind_rows(raceresults_df_list)
 
-# odds Spalte anpassen (whitespace trim und Komma ersetzen)
+# odds colum trim whitespace trim and replace comma
 raceresults$odds <- str_trim(raceresults$odds)
 raceresults$odds <- as.double(gsub(",", ".", raceresults$odds))
 
-
-
-
-# aufräumen
+# remove unnecessary variables
 rm(list = setdiff(ls(), c("raceinfos", "raceresults")))
 
 
 
-##---------- Renninfos und Rennresultate verbinden ---------------------------##
+##---------- Combine race infos and race results -----------------------------##
 
-# Welche race_ids fehlen in raceinfos, die jedoch in raceresults vorhanden sind
-# und umgekehrt
-setdiff(raceresults$gr_raceid, raceinfos$gr_raceid)
-setdiff(raceinfos$gr_raceid, raceresults$gr_raceid)
+# Finding race_ids missing in raceinfos but not in raceresults and vice versa
+setdiff(raceresults$dg_raceid, raceinfos$dg_raceid)
+setdiff(raceinfos$dg_raceid, raceresults$dg_raceid)
 
-#raceids die in raceinfos vorhanden sind aber nicht raceresults sind Rennen, die
-# nicht gelaufen worden sind
-
+# combining raceinfos and raceresults
 races <- raceinfos %>% 
-  inner_join(raceresults, by = "gr_raceid")
+  inner_join(raceresults, by = "dg_raceid")
 
 
-# 
-# 
-# ##----------- GAGs einlesen --------------------------------------------------##
-# 
-# gag_20160101bis20210930 <- read.csv2(
-#   paste0(
-#     "C:/Users/luise/Documents/Christian/HorseRacing/01Galopp_ver2/", 
-#     "01DataCollection/03GAG/horses_GAG_20160101bis20210930.csv"    
-#   )
-# )
-# 
-# # Spalte gr_raceid auf id reduzieren
-# gag_20160101bis20210930$gr_raceid <- gsub(
-#   "^.*id=", "", gag_20160101bis20210930$gr_raceid
-# )
-# gag_20160101bis20210930$gr_raceid <- gsub(
-#   "&d=.*$", "", gag_20160101bis20210930$gr_raceid
-# )
-# gag_20160101bis20210930$gr_raceid <- as.integer(
-#   gag_20160101bis20210930$gr_raceid
-# )
-# # Duplikate in GAGs rausfiltern
-# gag_20160101bis20210930 <- distinct(
-#   gag_20160101bis20210930, gr_raceid, gr_horseid, .keep_all = TRUE
-# )
-# 
-# 
-# ##----------- Rennen und GAGs verbinden --------------------------------------##
-# 
-# races_2002bis2023 <- races_2002bis2023 %>% 
-#   left_join(gag_20160101bis20210930, by = c("gr_raceid", "gr_horseid"))
-# # aufräumen
-# rm(
-#   list = c(
-#     "gag_20160101bis20210930", "raceinfos_2002bis2023", 
-#     "raceresults_2002bis2023"
-#   )
-# )
 
-
-##----------- Duplikate in races finden und entfernen ------------------------##
+##----------- Find duplicates and remove them --------------------------------##
 
 races_duplicates <- races[duplicated(races), ]
-
 races <- races %>% distinct()
 
 
-##----------- data frame als csv speichern -----------------------------------##
 
-write.csv(
-  races,
-  paste0(
-    "C:/Users/chris/Documents/HorseRacing/01Galopp_ver2/", 
-    "01DataCollection/galopp_de.csv"    
-  ),
-  row.names = FALSE,
-  fileEncoding = "utf-8"
-)
+##----------- Save as RData file ---------------------------------------------##
 
+saveRDS(races, "../data/intermediate/im_german_racing_data.RData")
 
-
-
-
+rm(list = ls())
 
