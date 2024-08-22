@@ -3,38 +3,44 @@ library(stringi)
 library(tidyverse)
 
 
-##----------- Daten einlesen -------------------------------------------------##
+##----------- Import Data ----------------------------------------------------##
 
-races <- read.csv(
-  paste0(
-    "C:/Users/chris/Documents/HorseRacing/01Galopp_ver2/", 
-    "01DataCollection/galopp_de.csv"
-  ),
-  encoding = "utf-8"
-)
+# set working directory to directory in which script is stored
+script_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(script_path)
 
+races <- readRDS("../data/intermediate/im_german_racing_data.RData")
+
+
+# change column data types
+races$date_time <- ymd_hms(races$date_time)
 
 
 ##----------------------------------------------------------------------------##
-##----------- Spalten formatieren, saeubern, hinzufuegen ---------------------##
+##----------- Format, clean, and add columns ---------------------------------##
 ##----------------------------------------------------------------------------##
 
 
-##----------- Hürden-, Jagd- und Flachrennen ---------------------------------##
+##----------- Hurdle races, steeplechase and flat racing ---------------------##
 
 # Variable race_type
 races$race_type <- ifelse(
   grepl("Huerdenrennen", races$race_category),
-  "Huerdenrennen",
+  "hurdle",
   ifelse(
-    grepl("Jagdrennen", races$race_category),
-    "Jagdrennen",
-    "Flachrennen"
+    grepl("Jagdrennen", races$race_category), "chase","flat"
   )
 )
 
 
+
 ##----------- fehlerhafte Pferdenamen verbessern -----------------------------##
+
+horse_name_errors <- races %>% 
+  group_by(dg_horseid) %>% 
+  summarize(num_names = n_distinct(horse)) 
+
+
 
 races$pferd <- ifelse(races$gr_horseid == 1265681, "Iron on Fire", races$pferd)
 races$pferd <- ifelse(races$gr_horseid == 1287464, "Simeon", races$pferd)
@@ -46,6 +52,16 @@ races$pferd <- ifelse(races$gr_horseid == 7984876, "Catera", races$pferd)
 
 ##----------- going und surface ----------------------------------------------##
 ##----------- fehlende Boden-Angaben ergänzen --------------------------------##
+
+
+# Cuxhaven immer "Boden: Sand (nass)"
+
+# Dortmund 
+# zwischen Dezember und März mit fehlendem going "Boden: Sand"
+# 2002-10-09, 2002-11-01, 2002-11-24  "Boden: "
+# 2002-11-30    "Boden: Sand"
+
+
 
 # für Bad Doberan
 races$going <- ifelse(
