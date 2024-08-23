@@ -42,16 +42,33 @@ horse_name_errors <- races %>%
 
 
 
-races$pferd <- ifelse(races$gr_horseid == 1265681, "Iron on Fire", races$pferd)
-races$pferd <- ifelse(races$gr_horseid == 1287464, "Simeon", races$pferd)
-races$pferd <- ifelse(races$gr_horseid == 1685149, "Tappalugo", races$pferd)
-races$pferd <- ifelse(races$gr_horseid == 2424178, "Icys Son", races$pferd)
-races$pferd <- ifelse(races$gr_horseid == 6482882, "Irean", races$pferd)
-races$pferd <- ifelse(races$gr_horseid == 7984876, "Catera", races$pferd)
+races$horse <- ifelse(races$dg_horseid == 1265681, "Iron on Fire", races$horse)
+races$horse <- ifelse(races$dg_horseid == 1287464, "Simeon", races$horse)
+races$horse <- ifelse(races$dg_horseid == 1685149, "Tappalugo", races$horse)
+races$horse <- ifelse(races$dg_horseid == 2424178, "Icys Son", races$horse)
+races$horse <- ifelse(races$dg_horseid == 6482882, "Irean", races$horse)
+races$horse <- ifelse(races$dg_horseid == 7984876, "Catera", races$horse)
 
 
-##----------- going und surface ----------------------------------------------##
-##----------- fehlende Boden-Angaben ergänzen --------------------------------##
+
+##--------------------- Going and Surface ------------------------------------##
+##----------- Adding missing and replacing wrong going values ----------------##
+
+# import lookup table
+going_lookup_tbl <- read.csv("../data/raw/going_replacements.csv")
+going_lookup_tbl$date_time <- ymd_hms(going_lookup_tbl$date_time)
+# joining lookup table with main dataset
+races <- races %>% 
+  left_join(going_lookup_tbl, by = c("dg_course", "date_time")) %>% 
+  mutate(
+    going = coalesce(going.y, going.x),
+    dg_raceid = coalesce(dg_raceid.y, dg_raceid.x)
+  ) %>% 
+  select(-c("going.x", "going.y", "dg_raceid.x", "dg_raceid.y")) %>% 
+  select(dg_raceid, dg_course:race_distance, going, prizemoney_cent:race_type)
+
+
+
 
 
 # Cuxhaven immer "Boden: Sand (nass)"
