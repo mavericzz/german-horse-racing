@@ -61,6 +61,30 @@ races$pferd <- ifelse(races$gr_horseid == 7984876, "Catera", races$pferd)
 # 2002-10-09, 2002-11-01, 2002-11-24  "Boden: "
 # 2002-11-30    "Boden: Sand"
 
+# Honzrath
+# fehlende Werte mit "Boden: Sand" ersetzen
+
+# Hooksiel
+# fehlende Werte mit "Boden: " ersetzen
+
+# Karlsruhe
+# fehlende Werte mit "Boden: Sand" ersetzen
+
+# Magdeburg
+# fehlende Werte mit "Boden: " ersetzen
+
+# Mannheim
+# fehlende Werte mit "Boden: " ersetzen
+
+# Neuss
+# zwischen November und März "Boden: Sand"
+# evtl. auf Grasrennen prüfen
+
+# Sonsbeck
+# fehlend: "Boden: Sand"
+
+# Warendorf
+# fehlend: "Boden: Sand"
 
 
 # für Bad Doberan
@@ -203,18 +227,21 @@ races$going <- ifelse(
   "Boden: weich",
   races$going
 )
+# ausgefallen
 races$going <- ifelse(
   races$gr_course == "Hamburg" & 
     grepl("2007-06-27", races$date_time),
   "Boden: schwer",
   races$going
 )
+# passt
 races$going <- ifelse(
   races$gr_course == "Hamburg" & races$going == "" &
     grepl("2014-07-05", races$date_time),
   "Boden: gut",
   races$going
 )
+# abgesagt
 races$going <- ifelse(
   races$gr_course == "Hamburg" & 
     grepl("2016-07-08", races$date_time),
@@ -287,6 +314,7 @@ races$going <- ifelse(
   "Boden: weich",
   races$going
 )
+# abgesagt
 races$going <- ifelse(
   races$gr_course == "Köln" & grepl("2012-10-03", races$date_time),
   "Boden: ",
@@ -345,6 +373,7 @@ races$going <- ifelse(
   "Boden: gut",
   races$going
 )
+# passt
 races$going <- ifelse(
   races$gr_course == "München" & races$going == "" &
     grepl("2002-08-04", races$date_time),
