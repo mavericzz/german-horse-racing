@@ -115,7 +115,7 @@ races <- races %>%
   select(-prizemoney_cent)
 
 
-##--------------- Altersklasse -----------------------------------------------##
+##--------------- Age Groups -------------------------------------------------##
 
 # Vector of patterns to search for and their corresponding replacements
 patterns <- c(
@@ -139,17 +139,12 @@ races$race_ages <- gsub("Innenbahn - ", "", races$race_ages)
 races$race_ages <- gsub("( |,).*", "", races$race_ages)
 
 
-##------------ gag_postrace --------------------------------------------------##
-
-# races$gag_postrace <- as.numeric(
-#   gsub(",", ".", str_trim(gsub(" kg", "", races$gag_postrace)))
-# )
-
-
 ##----------- Araber- und Halbblutrennen rausfiltern -------------------------##
 
-races <- races[grepl("Araber-Rennen", races$race_category) == 0, ]
-races <- races[grepl("Halbblutrennen", races$race_category) == 0, ]
+
+races <- races %>% 
+  filter(!grepl("Araber-Rennen|Halbblutrennen", race_category))
+
 
 ##----------- Fehler beim Scrapen bei hoage nachträglich verbessern ----------##
 
