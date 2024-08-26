@@ -104,14 +104,15 @@ races <- races %>%
   )
 
 
-##----------- prizemoney_cent, preisgeld und gewinn --------------------------##
+##----------- Purse, Earnings ------------------------------------------------##
 
-races$preisgeld <- races$prizemoney_cent / 100
 races <- races %>% 
+  mutate(
+    purse = prizemoney_cent / 100,
+    earnings = str_replace_all(hoprize, " €|\\.", "") %>% 
+      as.numeric(.) %>% replace_na(0)
+  ) %>% 
   select(-prizemoney_cent)
-races$gewinn <- gsub(" €", "", races$gewinn)
-races$gewinn <- as.double(gsub("\\.", "", races$gewinn))
-races$gewinn <- ifelse(is.na(races$gewinn), 0, races$gewinn)
 
 
 ##--------------- Altersklasse -----------------------------------------------##
