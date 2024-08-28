@@ -139,27 +139,27 @@ races$race_ages <- gsub("Innenbahn - ", "", races$race_ages)
 races$race_ages <- gsub("( |,).*", "", races$race_ages)
 
 
-##----------- Araber- und Halbblutrennen rausfiltern -------------------------##
+##----------- Filtering out non thoroughbred races ---------------------------##
 
 
 races <- races %>% 
   filter(!grepl("Araber-Rennen|Halbblutrennen", race_category))
 
 
-##----------- Fehler beim Scrapen bei hoage nachträglich verbessern ----------##
+##--------------------------- Age column -------------------------------------##
 
-races$hoage <- str_extract(races$pferd_infos, "Alter: .*")
+races$hoage <- str_extract(races$horse_infos, "Alter: .*")
 races$hoage <- str_extract(races$hoage, ".*Jahre ")
 races$hoage <- gsub("Alter: ", "", races$hoage)
 races$hoage <- as.integer(str_trim(gsub(" Jahre", "", races$hoage)))
 
 
-##----------- position (des Pferdes Zieleinlauf) -----------------------------##
+##----------- Finish position ------------------------------------------------##
 
 races$position <- as.integer(gsub("\\.", "", races$position))
 
 
-##----------- Amateurjockey? -------------------------------------------------##
+##-------------------- Amateur jockey? ---------------------------------------##
 
 races$joam <- ifelse(grepl("^Am\\.", races$jockey), 1, 0)
 races$jockey <- gsub("^Am\\.", "", races$jockey)
@@ -168,17 +168,18 @@ races$jockey <- gsub("^Am\\.", "", races$jockey)
 ##----------- race_category --------------------------------------------------##
 
 races$race_category <- str_trim(races$race_category)
-# Vereinfachte Übersicht für Rennklassen einlesen
+# import race class table
 races_classes <- read.csv(
-  paste0(
-    "C:/Users/chris/Documents/HorseRacing/01Galopp_ver2/", 
-    "02DataCleaning/race_type_class.csv"
-  ), fileEncoding = "utf-8"
+  "../data/raw/race_type_class.csv", fileEncoding = "utf-8"
 )
 races <- merge(races, races_classes, by = c("race_category"), all.x = TRUE)
 # empty strings in race_class durch NAs ersetzen
-races$race_class_new <- ifelse(races$race_class_new == "", NA, races$race_class_new)
-races$race_class_old <- ifelse(races$race_class_old == "", NA, races$race_class_old)
+races$race_class_new <- ifelse(
+  races$race_class_new == "", NA, races$race_class_new
+)
+races$race_class_old <- ifelse(
+  races$race_class_old == "", NA, races$race_class_old
+)
 
 
 ##----------------------------------------------------------------------------##
