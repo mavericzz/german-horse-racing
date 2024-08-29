@@ -187,31 +187,31 @@ races$race_class_old <- ifelse(
 
 # import lookup table
 times_lookup_tbl <- read.csv("../data/raw/race_time_corrections.csv")
+# change NAs to 0
+times_lookup_tbl$race_time_secs <- ifelse(
+  is.na(times_lookup_tbl$race_time_secs), 0, times_lookup_tbl$race_time_secs
+)
 times_lookup_tbl$date_time <- ymd_hms(times_lookup_tbl$date_time)
-
 # joining lookup table with main dataset
 races <- races %>% 
   left_join(times_lookup_tbl, by = c("dg_raceid", "dg_course", "date_time")) %>% 
   mutate(
-    race_time_secs = coalesce(race_time_secs.y, race_time_secs.x)
+    race_time_secs = coalesce(race_time_secs.y, race_time_secs.x),
+    race_time_secs = if_else(race_time_secs == 0, NA, race_time_secs)
   ) %>% 
   select(-c("race_time_secs.x", "race_time_secs.y"))
 
-
-
-# Zeiten der Flachrennen auf weitere Outliers untersuchen
-# nur die Zeit des Siegers wird benötigt und überflüssige Spalten löschen
+# Checking for remaining outliers in race_time_secs
 flat_winningtimes <- races %>% 
   filter(
-    position == 1 & !is.na(race_time_secs) & race_type == "Flachrennen" & 
+    position == 1 & !is.na(race_time_secs) & race_type == "flat" & 
       surface == "Turf" & !is.na(race_class_old)
   ) %>% 
   select(
-    gr_raceid, date_time, gr_course, surface, going, 
+    dg_raceid, date_time, dg_course, surface, going, 
     race_distance, race_time_secs, race_class_old
   )
-
-# Plot: Distanzen und Zeiten der Sieger 
+# Plot: Distances and winning times
 ggplot(flat_winningtimes, aes(x = race_distance, y = race_time_secs)) +
   geom_point(shape = 1) +
   labs(
@@ -224,30 +224,6 @@ ggplot(flat_winningtimes, aes(x = race_distance, y = race_time_secs)) +
     plot.title = element_text(hjust = 0.5),
     plot.subtitle = element_text(hjust = 0.5)
   )
-
-# Potentiell nicht plausible Outliers auf NA setzen
-outliers <- c(
-  # 1400m
-  1193846, 1214861, 
-  # 1500m
-  1198189, 1223191, 
-  # 1550m 
-  1206640,
-  # 1600m 
-  1213661, 1193769, 1208939,
-  # 2000m
-  1194841,
-  # 2200m
-  1349913,
-  # 2400m
-  1214030,
-  # 3050m
-  1326477
-)
-races$race_time_secs <- ifelse(
-  races$gr_raceid %in% outliers, NA, races$race_time_secs
-)
-
 
 
 ##----------------------------------------------------------------------------##
