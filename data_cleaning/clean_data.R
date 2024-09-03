@@ -173,7 +173,7 @@ races_classes <- read.csv(
   "../data/raw/race_type_class.csv", fileEncoding = "utf-8"
 )
 races <- merge(races, races_classes, by = c("race_category"), all.x = TRUE)
-# empty strings in race_class durch NAs ersetzen
+# replace empty strings in race_class with NAs
 races$race_class_new <- ifelse(
   races$race_class_new == "", NA, races$race_class_new
 )
