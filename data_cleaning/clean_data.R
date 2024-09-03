@@ -238,28 +238,28 @@ races[races$gr_raceid == 1329144 & races$gr_horseid == 25594413, ]$odds <- 4.6
 races[races$gr_raceid ==  1329903 & races$gr_horseid == 29654591, ]$odds <- 14.6
 
 
-##----------- Halbblut, Scheuklappen, Seitenblender, Ohrenstöpsel ------------##
+##----------- Half-bred, blinkers, cheekpieces, earplugs ---------------------##
 
-# Halbblüter
-races$halbblut <- as.integer(ifelse(grepl(" \\(H\\)", races$pferd), 1, 0))
-races$pferd <- gsub(" \\(H\\)", "", races$pferd)
-# Scheuklappen
-races$skl <- as.integer(ifelse(grepl("Skl\\.", races$pferd), 1, 0))
-races$pferd <- gsub("Skl\\.", "", races$pferd)
-# Seitenblender
-races$sb <- as.integer(ifelse(grepl("Sb\\.", races$pferd), 1, 0))
-races$pferd <- gsub("Sb\\.", "", races$pferd)
-# Ohrenstöpsel
-races$ohrenst <- as.integer(ifelse(grepl("O\\.", races$pferd), 1, 0))
-races$pferd <- gsub("O\\.", "", races$pferd)
+# Half-bred
+races$halfbred <- as.integer(ifelse(grepl(" \\(H\\)", races$horse), 1, 0))
+races$horse <- gsub(" \\(H\\)", "", races$horse)
+# blinkers
+races$blinkers <- as.integer(ifelse(grepl("Skl\\.", races$horse), 1, 0))
+races$horse <- gsub("Skl\\.", "", races$horse)
+# cheekpieces
+races$cheekpieces <- as.integer(ifelse(grepl("Sb\\.", races$horse), 1, 0))
+races$horse <- gsub("Sb\\.", "", races$horse)
+# earplugs
+races$earplugs <- as.integer(ifelse(grepl("O\\.", races$horse), 1, 0))
+races$horse <- gsub("O\\.", "", races$horse)
 
 
-##----------- Geschlecht des Pferdes -----------------------------------------##
+##------------------- Horse's gender -----------------------------------------##
 
 races$hosex <- gsub("Geschlecht: ", "", races$hosex)
 
 
-##----------- Pedigree des Pferdes -------------------------------------------##
+##------------------ Pedigree (Sire and Dam) ---------------------------------##
 
 races <- races %>% 
   mutate(
@@ -272,13 +272,13 @@ races <- races %>%
   select(-sire_dam_split)
 
 
-##------------ Breeder / Züchter ---------------------------------------------##
+##---------------------- Breeder ---------------------------------------------##
 
-races$breeder <- str_extract(races$pferd_infos, "<br>Züchter: .*<br>")
+races$breeder <- str_extract(races$horse_infos, "<br>Züchter: .*<br>")
 races$breeder <- str_remove_all(races$breeder, "Züchter: |<br>")
 
 
-##----------- Abstände -------------------------------------------------------##
+##---------------------------- Abstände --------------------------------------##
 
 # bestimmte Abstände ersetzen
 races$abstand[
