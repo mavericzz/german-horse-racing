@@ -33,14 +33,11 @@ races$race_type <- ifelse(
 )
 
 
-
-##----------- fehlerhafte Pferdenamen verbessern -----------------------------##
+##----------- Replace incorrect horse names ----------------------------------##
 
 horse_name_errors <- races %>% 
   group_by(dg_horseid) %>% 
   summarize(num_names = n_distinct(horse)) 
-
-
 
 races$horse <- ifelse(races$dg_horseid == 1265681, "Iron on Fire", races$horse)
 races$horse <- ifelse(races$dg_horseid == 1287464, "Simeon", races$horse)
