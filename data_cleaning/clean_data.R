@@ -225,17 +225,17 @@ ggplot(flat_winningtimes, aes(x = race_distance, y = race_time_secs)) +
 
 ##----------- exclude late Non-Runners ---------------------------------------##
 
-races <- races[!(races$gr_raceid == 1318344 & races$gr_horseid == 25466282), ]
-races <- races[!(races$gr_raceid == 1310232 & races$gr_horseid == 18568430), ]
+races <- races[!(races$dg_raceid == 1318344 & races$dg_horseid == 25466282), ]
+races <- races[!(races$dg_raceid == 1310232 & races$dg_horseid == 18568430), ]
 
 
 ##----------- Replace missing odds with values -------------------------------##
 
-races[races$gr_raceid == 1329144 & races$gr_horseid == 17857103, ]$odds <- 14.4
-races[races$gr_raceid == 1329144 & races$gr_horseid == 23428805, ]$odds <- 6
-races[races$gr_raceid == 1329144 & races$gr_horseid == 24453233, ]$odds <- 9.7
-races[races$gr_raceid == 1329144 & races$gr_horseid == 25594413, ]$odds <- 4.6
-races[races$gr_raceid ==  1329903 & races$gr_horseid == 29654591, ]$odds <- 14.6
+races[races$dg_raceid == 1329144 & races$dg_horseid == 17857103, ]$odds <- 14.4
+races[races$dg_raceid == 1329144 & races$dg_horseid == 23428805, ]$odds <- 6
+races[races$dg_raceid == 1329144 & races$dg_horseid == 24453233, ]$odds <- 9.7
+races[races$dg_raceid == 1329144 & races$dg_horseid == 25594413, ]$odds <- 4.6
+races[races$dg_raceid ==  1329903 & races$dg_horseid == 29654591, ]$odds <- 14.6
 
 
 ##----------- Half-bred, blinkers, cheekpieces, earplugs ---------------------##
@@ -263,7 +263,7 @@ races$hosex <- gsub("Geschlecht: ", "", races$hosex)
 
 races <- races %>% 
   mutate(
-    sire_dam_split = str_split(abstammung, "\\ - "),
+    sire_dam_split = str_split(pedigree, "\\ - "),
     sire = gsub(
       "Abstammung: v.", "", sapply(sire_dam_split, function(x) x[1]) 
     ),
@@ -278,11 +278,11 @@ races$breeder <- str_extract(races$horse_infos, "<br>Züchter: .*<br>")
 races$breeder <- str_remove_all(races$breeder, "Züchter: |<br>")
 
 
-##---------------------------- Abstände --------------------------------------##
+##---------------------------- Distance beaten -------------------------------##
 
-# bestimmte Abstände ersetzen
-races$abstand[
-  races$gr_raceid == 1310305 & races$position == 3 & !is.na(races$position) 
+# replace margin values
+races$dist_btn[
+  races$dg_raceid == 1310305 & races$position == 3 & !is.na(races$position) 
 ] <- "Hals (Itobo)"
 
 # Abstand umwandeln
@@ -348,7 +348,7 @@ races <- races %>%
 races$abstand_zeit <- races$abstand_laengen * 0.144
 races <- races %>% 
   arrange(position) %>% 
-  group_by(gr_raceid) %>% 
+  group_by(dg_raceid) %>% 
   mutate(abstand_zeitcum = cumsum(abstand_zeit))
 # Zeit für jedes Pferd berechnen
 races$zeit_pferd <- races$abstand_zeitcum + races$race_time_secs
