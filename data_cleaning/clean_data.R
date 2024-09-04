@@ -281,39 +281,39 @@ races$breeder <- str_remove_all(races$breeder, "Züchter: |<br>")
 ##---------------------------- Distance beaten -------------------------------##
 
 # replace margin values
-races$dist_btn[
+races$dist_btn_chr[
   races$dg_raceid == 1310305 & races$position == 3 & !is.na(races$position) 
 ] <- "Hals (Itobo)"
 
-# Abstand umwandeln
-races$abstand_ganze_laengen <- ifelse(
-  grepl("^\\d+$", races$abstand), 
-  as.numeric(str_extract(races$abstand, "^\\d+$")),
-  as.numeric(str_extract(races$abstand, "^\\d* "))
+# transform dist_btn_chr
+races$dist_btn_whole_lengths <- ifelse(
+  grepl("^\\d+$", races$dist_btn_chr), 
+  as.numeric(str_extract(races$dist_btn_chr, "^\\d+$")),
+  as.numeric(str_extract(races$dist_btn_chr, "^\\d* "))
 )
-races$abstand_nachkomma <- str_extract(races$abstand, "\\d/\\d")
-# Zeichen für Brüche umwandeln
-races$abstand_nachkomma <- ifelse(
-  grepl("^½|'½", races$abstand), "1/2", races$abstand_nachkomma
+races$dist_btn_fractional_part <- str_extract(races$dist_btn_chr, "\\d/\\d")
+# transform signs for fractions
+races$dist_btn_fractional_part <- ifelse(
+  grepl("^½|'½", races$dist_btn_chr), "1/2", races$dist_btn_fractional_part
 )
-races$abstand_nachkomma <- ifelse(
-  grepl("^¾", races$abstand), "3/4", races$abstand_nachkomma
+races$dist_btn_fractional_part <- ifelse(
+  grepl("^¾", races$dist_btn_chr), "3/4", races$dist_btn_fractional_part
 )
-races$abstand_nachkomma2 <- as.numeric(
-  str_sub(races$abstand_nachkomma, 1, 1)
-) / as.numeric(str_sub(races$abstand_nachkomma, 3, 3))
-races$abstand_anderer <- ifelse(
-  grepl("totes Rennen", races$abstand), 0,
+races$dist_btn_fractional_part2 <- as.numeric(
+  str_sub(races$dist_btn_fractional_part, 1, 1)
+) / as.numeric(str_sub(races$dist_btn_fractional_part, 3, 3))
+races$dist_btn_other <- ifelse(
+  grepl("totes Rennen", races$dist_btn_chr), 0,
   ifelse(
-    grepl("Nase", races$abstand), 0.02,
+    grepl("Nase", races$dist_btn_chr), 0.02,
     ifelse(
-      grepl("kurzer Kopf", races$abstand), 0.05,
+      grepl("kurzer Kopf", races$dist_btn_chr), 0.05,
       ifelse(
-        grepl("Kopf", races$abstand), 0.1,
+        grepl("Kopf", races$dist_btn_chr), 0.1,
         ifelse(
-          grepl("Hals", races$abstand), 0.25,
+          grepl("Hals", races$dist_btn_chr), 0.25,
           ifelse(
-            grepl("Weile", races$abstand), 50, NA
+            grepl("Weile", races$dist_btn_chr), 50, NA
           )
         )
       )
@@ -321,49 +321,42 @@ races$abstand_anderer <- ifelse(
   )
 ) 
 
-races$abstand_ganze_laengen <- ifelse(
-  is.na(races$abstand_ganze_laengen), 0, races$abstand_ganze_laengen
+races$dist_btn_whole_lengths <- ifelse(
+  is.na(races$dist_btn_whole_lengths), 0, races$dist_btn_whole_lengths
 )
-races$abstand_nachkomma2 <- ifelse(
-  is.na(races$abstand_nachkomma2), 0, races$abstand_nachkomma2
+races$dist_btn_fractional_part2 <- ifelse(
+  is.na(races$dist_btn_fractional_part2), 0, races$dist_btn_fractional_part2
 )
-races$abstand_anderer <- ifelse(
-  is.na(races$abstand_anderer), 0, races$abstand_anderer
+races$dist_btn_other <- ifelse(
+  is.na(races$dist_btn_other), 0, races$dist_btn_other
 )
-races$abstand_laengen <-  races$abstand_ganze_laengen + 
-  races$abstand_nachkomma2 + races$abstand_anderer
-races$abstand_laengen <- ifelse(
-  is.na(races$position), NA, races$abstand_laengen
+races$dist_btn <-  races$dist_btn_whole_lengths + 
+  races$dist_btn_fractional_part2 + races$dist_btn_other
+races$dist_btn <- ifelse(
+  is.na(races$position), NA, races$dist_btn
 )
-# überflüssige Spalten rausschmeißen
+# remove unnecessary columns
 races <- races %>% 
   select(
     - c(
-      abstand_ganze_laengen, abstand_nachkomma, 
-      abstand_nachkomma2, abstand_anderer
+      dist_btn_whole_lengths, dist_btn_fractional_part, 
+      dist_btn_fractional_part2, dist_btn_other
     )
   )
-
-# Abstand in Zeit umwandeln
-races$abstand_zeit <- races$abstand_laengen * 0.144
+# distance to the winner, measure distance in time
 races <- races %>% 
   arrange(position) %>% 
   group_by(dg_raceid) %>% 
-  mutate(abstand_zeitcum = cumsum(abstand_zeit))
-# Zeit für jedes Pferd berechnen
-races$zeit_pferd <- races$abstand_zeitcum + races$race_time_secs
+  mutate(
+    dist_btn_cum = cumsum(dist_btn),
+    secs_btn = dist_btn * 0.1667,
+    secs_btn_cum = cumsum(secs_btn),
+    # time for each horse
+    hotime = secs_btn_cum + race_time_secs
+  )
 
 
+##----------- Save data frame as RData file ----------------------------------##
 
-##----------- data frame als csv abspeichern ---------------------------------##
-
-write.csv(
-  races,
-  paste0(
-    "C:/Users/chris/Documents/HorseRacing/01Galopp_ver2/", 
-    "02DataCleaning/galopp_de_clean.csv"
-  ),
-  row.names = FALSE, fileEncoding = "utf-8"
-)
-
+saveRDS(races, "../data/processed/cleaned_race_data.RData")
 
