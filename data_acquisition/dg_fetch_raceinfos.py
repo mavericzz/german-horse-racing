@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Oct  5 13:36:11 2021
-
-@author: christian
-"""
 
 import csv
 import requests
@@ -182,42 +176,40 @@ def get_race_links(url, headers):
 
 
 
-def get_veranstaltungen():
+def get_veranstaltungen(
+        start_year, start_month, start_day, end_year, end_month, end_day
+    ):
     """
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    url : string
-        Link zu den Veranstaltungen (Renntage) für ausgewählten Zeitraum.
-
+    Constructs a URL for the deutscher-galopp.de website based on a specified
+    date range.
+    
+    Args:
+        start_year (str): Starting year (YYYY format).
+        start_month (str): Starting month (MM format).
+        start_day (str): Starting day (DD format).
+        end_year (str): Ending year (YYYY format).
+        end_month (str): Ending month (MM format).
+        end_day (str): Ending day (DD format).
+    
+    Returns:
+        str: The URL for deutscher-galopp.de with the specified date range.
     """
-    start_year = start_date[0:4]
-    start_month = start_date[4:6]
-    start_day = start_date[6:8]
-    end_year = end_date[0:4]
-    end_month = end_date[4:6]
-    end_day = end_date[6:8]
-    # dictionary with german months
-    ger_months = {
+    
+    german_months = {
         1: 'Januar', 2: 'Februar', 3: 'März', 4: 'April',
         5: 'Mai', 6: 'Juni', 7: 'Juli', 8: 'August',
         9: 'September', 10: 'Oktober', 11: 'November', 12: 'Dezember'
     }
-    # string concatenation for getting the right url (start date to end date)
-    url = (
-        "https://www.deutscher-galopp.de/gr/renntage/rennkalender.php?" +
-        "jahr=" + start_year + "&land=8&art=&von=" + start_day + ".+" + 
-        ger_months[int(start_month)] + "+" + start_year + "&von_submit=" +
-        start_year + "%2F" + start_month + "%2F" + start_day + 
-        "&ort=&laengevon=1000&laengebis=6800" +
-        "&bis=" + end_day + ".+" + ger_months[int(end_month)] + 
-        "+" + end_year + "&bis_submit=" + end_year + "%2F" + end_month + "%2F" +
-        end_day
-    )   
-    return url
+    start_month_str = german_months[int(start_month)]
+    end_month_str = german_months[int(end_month)]
+    url_format = f"""
+        https://www.deutscher-galopp.de/gr/renntage/rennkalender.php?
+        jahr={start_year}&land=8&art=&von={start_day}.+{start_month_str}+
+        {start_year}&von_submit={start_year}%2F{start_month}%2F{start_day} 
+        &ort=&laengevon=1000&laengebis=6800&bis={end_day}.+{end_month_str} 
+        +{end_year}&bis_submit={end_year}%2F{end_month}%2F{end_day}
+        """
+    return url_format
 
 
 # Mimicking browser
@@ -226,11 +218,21 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 # taking input for start date, end date and name of csv-file for output
 start_date = input("Start Date (YYYYMMDD)? ")
 end_date = input("End Date (YYYYMMDD)? ")
+start_year = start_date[0:4]
+start_month = start_date[4:6]
+start_day = start_date[6:8]
+end_year = end_date[0:4]
+end_month = end_date[4:6]
+end_day = end_date[6:8]
+
 csv_file_input = input("File Name? ")
 csv_file = csv_file_input + ".csv"
 errors_file = "errors_" + csv_file_input + ".csv"
 
-veranstaltungen = get_veranstaltungen()
+
+veranstaltungen = get_veranstaltungen(
+    start_year, start_month, start_day, end_year, end_month, end_day
+)
 race_links = get_race_links(veranstaltungen, headers)
 print(race_links)
 
