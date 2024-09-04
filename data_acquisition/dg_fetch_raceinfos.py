@@ -7,19 +7,17 @@ from datetime import datetime
 
 def get_race_info(url, headers):
     """
-    
+    Extracts race information from the given URL.
 
-    Parameters
-    ----------
-    url : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    race_info_dict : TYPE
-        DESCRIPTION.
-
+    Args:
+        url (str): URL of the race page.
+        headers (dict): Request headers.
+        
+    Returns:
+        dict: Dictionary containing scraped race information (or None if an
+        error occurs).
     """
+    
     response = requests.get(url, headers = headers)
     html = response.text
     bsObj = BeautifulSoup(html, 'html.parser')
@@ -40,7 +38,7 @@ def get_race_info(url, headers):
     # header-right (race-facts-container) mit Rennklasse, Länge und Preisgeld
     # und Boden. Bei älteren Rennen wurde die Rennklasse nicht angegeben und 
     # header-right
-    # enthält statt drei zwei Elemente
+    # enthält statt drei Elementen nur zwei Elemente
     header_right = bsObj.select(
         'div.header-right-container.container-racefacts span'
     )
@@ -141,28 +139,24 @@ def get_race_info(url, headers):
 
 
 
-    
-
 def get_race_links(url, headers):
     """
-
-    Parameters
-    ----------
-    url : string
-        Link zu den Veranstaltungen (Renntage) für ausgewählten Zeitraum.
-
-    Returns
-    -------
-    race_links : list
-        Liste mit Links zu den einzelnen Rennen innerhalb des ausgewählten Zeitraums.
-
+    Extracts links to individual races from the given URL.
+    
+    Args:
+        url (str): URL of the page containing race links.
+        headers (dict): Request headers.
+    
+    Returns:
+        list: List of URLs for the individual races.
     """
-    global race_links
-    race_links = []
+    
     response = requests.get(url, headers = headers)
     html = response.text
     bsObj = BeautifulSoup(html, 'html.parser')
     race_url_p1 = "https://www.deutscher-galopp.de"
+    
+    race_links = []
     for link in bsObj.findAll(
         "a", 
         {"class":"tooltip"}, 
@@ -172,7 +166,6 @@ def get_race_links(url, headers):
             race_url_p2 = re.sub("&d.*", "", link.attrs['href'])
             race_links.append(race_url_p1 + race_url_p2)
     return race_links
-
 
 
 
@@ -213,7 +206,10 @@ def get_veranstaltungen(
 
 
 # Mimicking browser
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'}
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' + 
+        'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+}
 
 # taking input for start date, end date and name of csv-file for output
 start_date = input("Start Date (YYYYMMDD)? ")
@@ -231,7 +227,7 @@ errors_file = "errors_" + csv_file_input + ".csv"
 
 
 veranstaltungen = get_veranstaltungen(
-    start_year, start_month, start_day, end_year, end_month, end_day
+    start_year, start_month, start_day, end_year, end_month, end_day           
 )
 race_links = get_race_links(veranstaltungen, headers)
 print(race_links)
