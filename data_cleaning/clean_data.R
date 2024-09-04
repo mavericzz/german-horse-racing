@@ -358,5 +358,5 @@ races <- races %>%
 
 ##----------- Save data frame as RData file ----------------------------------##
 
-saveRDS(races, "../data/processed/cleaned_race_data.RData")
+saveRDS(races, "../data/processed/cleaned_german_racing_data.RData")
 
