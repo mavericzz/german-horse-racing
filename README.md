@@ -1,5 +1,5 @@
-# horse-racing
-Using Bill Benter's (1994) methods for german horse racing
+# german-horse-racing
+Using Bill Benter's (1994) methods on german horse racing
 
 The most influential paper on how to predict the outcome of a horse race and how to use modern computing for 
 this task has been written in 1994 by Bill Benter: 
