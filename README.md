@@ -11,9 +11,16 @@ Clone the Repository:
 git clone https://github.com/chris-alex-p/german-horse-racing.git
 ```
 
+## Data Acquisition:
+The `data_acquisition` directory contains scripts to acquire german horse racing results.
+
 ## Data:
 The `data` directory contains raw and processed data related to German horse racing.
 
+## Data Processing:
+The `data_processing` contains a script which preprocesses and combines german horse racing data.
+
+## Data Cleaning:
 
 
 * Data Collection
