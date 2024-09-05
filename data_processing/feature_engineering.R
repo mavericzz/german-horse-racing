@@ -30,6 +30,10 @@ races <- races %>%
     hoattend = row_number() - 1,
     hoattend_turf = lag(cumsum(surface == "Turf"), default = 0),
     hoattend_dirt = lag(cumsum(surface == "Sand"), default = 0),
+    hoattend365 = lag(
+      sum_run(x = !is.na(dg_horseid), k = 365, idx = as.Date(date_time)),
+      default = 0
+    ),
     hoattend730 = lag(
       sum_run(x = !is.na(dg_horseid), k = 730, idx = as.Date(date_time)),
       default = 0
@@ -52,6 +56,7 @@ races <- races %>%
     hoearnings_dirt = lag(
       cumsum(ifelse(surface == "Dirt", earnings, 0)), default = 0
     ),
+    hoearnings365
     homeanearn = ifelse(hoattend == 0, 0, hoearnings / hoattend),
     homeanearn_turf = ifelse(
       hoattend_turf == 0, 0, hoearnings_turf / hoattend_turf
