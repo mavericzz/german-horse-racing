@@ -53,12 +53,16 @@ races <- races %>%
       cumsum(ifelse(surface == "Dirt", earnings, 0)), default = 0
     ),
     homeanearn = ifelse(hoattend == 0, 0, hoearnings / hoattend),
-    homeanearn_turf = hoearnings_turf / hoattend_turf,
-    homeanearn_dirt = hoearnings_dirt / hoattend_dirt,
+    homeanearn_turf = ifelse(
+      hoattend_turf == 0, 0, hoearnings_turf / hoattend_turf
+    ),
+    homeanearn_dirt = ifelse(
+      hoattend_dirt == 0, 0, hoearnings_dirt / hoattend_dirt
+    ),
     hosprat = 100 + (course_record - hotime) * 5,
     hosprat = ifelse(hosprat < 0, 0, hosprat),
     homean4sprat = lag(
-      rollapplyr(hosprat, 4, mean, na.rm = TRUE, partial = TRUE)
+      rollapplyr(hosprat, 4, mean, na.rm = TRUE, partial = TRUE), default = 0
     )  
   ) %>% 
   ungroup()
