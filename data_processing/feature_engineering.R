@@ -56,7 +56,9 @@ races <- races %>%
     hoearnings_dirt = lag(
       cumsum(ifelse(surface == "Dirt", earnings, 0)), default = 0
     ),
-    hoearnings365
+    hoearnings365 = lag(
+      sum_run(x = earnings, k = 365, idx = as.Date(date_time))
+    ),
     homeanearn = ifelse(hoattend == 0, 0, hoearnings / hoattend),
     homeanearn_turf = ifelse(
       hoattend_turf == 0, 0, hoearnings_turf / hoattend_turf
@@ -64,8 +66,10 @@ races <- races %>%
     homeanearn_dirt = ifelse(
       hoattend_dirt == 0, 0, hoearnings_dirt / hoattend_dirt
     ),
+    homeanearn365 = ifelse(hoattend365 == 0, 0, hoearnings365 / hoattend365),
     hosprat = 100 + (course_record - hotime) * 5,
     hosprat = ifelse(hosprat < 0, 0, hosprat),
+    holastsprat = lag(hosprat, default = 0),
     homean4sprat = lag(
       rollapplyr(hosprat, 4, mean, na.rm = TRUE, partial = TRUE), default = 0
     )  
@@ -80,12 +84,21 @@ races <- races %>%
     joattend = row_number() - 1,
     joattend_turf = lag(cumsum(surface == "Turf"), default = 0),
     joattend_dirt = lag(cumsum(surface == "Sand"), default = 0),
+    joattend365 = lag(
+      sum_run(x = !is.na(jockey), k = 365, idx = as.Date(date_time)),
+      default = 0
+    ),
     jowins = lag(cumsum(win), default = 0),
     jowins_turf = lag(cumsum(ifelse(surface == "Turf", win, 0)), default = 0),
     jowins_dirt = lag(cumsum(ifelse(surface == "Sand", win, 0)), default = 0),
+    jowins365 = lag(
+      sum_run(x = win, k = 365, idx = as.Date(date_time)),
+      default = 0
+    ),
     josr = jowins / joattend,
     josr_turf = jowins_turf / joattend_turf, 
     josr_dirt = jowins_dirt / joattend_dirt,
+    josr365 = ifelse(joattend365 == 0, 0, jowins365 / joattend365),
     joearnings = lag(cumsum(earnings), default = 0),
     joearnings_turf = lag(
       cumsum(ifelse(surface == "Turf", earnings, 0)), default = 0
@@ -99,24 +112,4 @@ races <- races %>%
   ) %>% 
   ungroup()
 
-
-# course records (2002-2018)
-races <- races %>% 
-  group_by(dg_course, race_distance) %>% 
-  mutate(
-    course_record = min(race_time_secs, na.rm = TRUE)
-  ) %>% 
-  ungroup()
-
-
-# course records (2002-2018)
-course_records <- races %>% 
-  filter(position == 1) %>% 
-  group_by(dg_course, race_distance) %>% 
-  filter(race_time_secs == min(race_time_secs, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  select(
-    dg_raceid, dg_course, date_time, race_no, race_distance, horse, dg_horseid,
-    race_time_secs
-  ) %>% 
-  ungroup()
+saveRDS(races, "../data/processed/engineered_features.Rds")
