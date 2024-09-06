@@ -22,3 +22,66 @@ setwd(script_path)
 data <- readRDS("../data/processed/cleaned_german_racing_data.RData")
 ```
 
+LIFE%WIN = hosr730, hosr
+AVESPRAT = homean4sprat
+W/RACE = homeanearn365
+LSPEDRAT = holastsprat
+JOCK%WIN = josr365
+JOCK#WIN = jowins365
+WEIGHT = weight
+POSTPOS = hostall
+
+
+
+```{r}
+knitr::include_graphics("model_specification1.jpg")
+```
+```{r}
+knitr::include_graphics("model_specification2.jpg")
+```
+```{r}
+knitr::include_graphics("model_specification3.jpg")
+```
+```{r}
+knitr::include_graphics("model_specification4.jpg")
+```
+
+
+# Import Data
+
+```{r}
+races <- readRDS("../data/processed/engineered_features.Rds")
+```
+
+
+# Filter Data
+
+only Ausgleich IV races
+Since 2019 (new takeout percentage)
+
+```{r}
+data <- races %>% 
+  filter(
+    race_class_old == "Ausgleich IV",
+    date_time > "2019-01-01 01:00:00"
+  ) %>% 
+  select(
+    win, hosr730, hosr, homean4sprat, homeanearn365, holastsprat, josr365, 
+    jowins365, weight, hostall, hono 
+  )
+```
+
+LIFE%WIN = hosr730, hosr
+AVESPRAT = homean4sprat
+W/RACE = homeanearn365
+LSPEDRAT = holastsprat
+JOCK%WIN = josr365
+JOCK#WIN = jowins365
+WEIGHT = weight
+POSTPOS = hostall
+
+
+# Split dataset
+
+
+
