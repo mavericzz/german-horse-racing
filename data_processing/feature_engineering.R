@@ -38,6 +38,7 @@ races <- races %>%
       sum_run(x = !is.na(dg_horseid), k = 730, idx = as.Date(date_time)),
       default = 0
     ),
+    hofirstrace = ifelse(hoattend == 0, 1, 0),
     howins = lag(cumsum(win), default = 0),
     howins730 = lag(
       sum_run(x = win, k = 730, idx = as.Date(date_time)),
