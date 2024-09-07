@@ -12,13 +12,16 @@ setwd(script_path)
 races <- readRDS("../data/intermediate/im_german_racing_data.RData")
 
 
-# change column data types
-races$date_time <- ymd_hms(races$date_time)
+
 
 
 ##----------------------------------------------------------------------------##
 ##----------- Format, clean, and add columns ---------------------------------##
 ##----------------------------------------------------------------------------##
+
+
+##-------------------------- date_time column --------------------------------##
+races$date_time <- ymd_hms(races$date_time)
 
 
 ##----------- Hurdle races, steeplechase and flat racing ---------------------##
@@ -356,7 +359,33 @@ races <- races %>%
   )
 
 
+##---------------------------- Weight ----------------------------------------##
+
+# correction of errors in weight_chr
+races$weight_chr <- ifelse(
+  races$dg_raceid == 1187949 & races$dg_horseid == 1828245, 
+  "56,0 kgErl. 3,0", 
+  races$weight_chr
+)
+
+# splitting weight_chr into three new columns (weight, allowance, penalty)
+races <- races %>% 
+  mutate(
+    weight = gsub(" kg.*", "", weight_chr),
+    weight = as.numeric(str_replace(weight, ",", "\\.")),
+    weight_penalty = ifelse(
+      grepl("Mgw.", weight_chr), gsub(".*Mgw. ", "", weight_chr), "0"
+    ),
+    weight_penalty = as.numeric(str_replace(weight_penalty, ",", "\\.")),
+    weight_allowance = ifelse(
+      grepl("Erl.", weight_chr), gsub(".* kgErl. |Mgw.*", "", weight_chr), "0"
+    ),
+    weight_allowance = as.numeric(str_replace(weight_allowance, ",", "\\."))
+  )
+  
+
+
 ##----------- Save data frame as RData file ----------------------------------##
 
-saveRDS(races, "../data/processed/cleaned_german_racing_data.RData")
+saveRDS(races, "../data/processed/cleaned_german_racing_data.Rds")
 
