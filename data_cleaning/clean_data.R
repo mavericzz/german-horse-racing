@@ -9,7 +9,7 @@ library(tidyverse)
 script_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
 setwd(script_path)
 
-races <- readRDS("../data/intermediate/im_german_racing_data.RData")
+races <- readRDS("../data/intermediate/im_german_racing_data.Rds")
 
 
 
