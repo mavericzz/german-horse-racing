@@ -8,7 +8,7 @@ script_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
 setwd(script_path)
 
 # import data
-races <- readRDS("../data/processed/cleaned_german_racing_data.RData")
+races <- readRDS("../data/processed/cleaned_german_racing_data.Rds")
 
 
 # course records (2002-2018)
