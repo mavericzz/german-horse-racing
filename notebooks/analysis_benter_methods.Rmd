@@ -4,7 +4,9 @@ output: html_notebook
 ---
 
 ```{r}
+library(survival)
 library(tidyverse)
+library(zoo)
 ```
 
 
@@ -58,17 +60,48 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 
 only Ausgleich IV races
 Since 2019 (new takeout percentage)
+only flat
+only turf
 
 ```{r}
 data <- races %>% 
   filter(
     race_class_old == "Ausgleich IV",
-    date_time > "2019-01-01 01:00:00"
+    date_time > "2019-01-01 01:00:00",
+    race_type == "flat",
+    surface == "Turf"
   ) %>% 
   select(
-    win, hosr730, hosr, homean4sprat, homeanearn365, holastsprat, josr365, 
-    jowins365, weight, hostall, hono 
+    win, date_time, hosr730, hosr, homean4sprat, homeanearn365, holastsprat, 
+    hoattend, josr365, jowins365, weight, hostall, hono, odds, dg_raceid, 
+    dg_horseid, horse, hofirstrace 
+  ) %>% 
+  filter(
+    !is.na(odds)
   )
+
+# homean4sprat missing (different reasons) exclude those races
+races_missing_data <- data %>% 
+  filter(is.na(homean4sprat)) %>% 
+  pull(dg_raceid)
+
+data <- data %>% 
+  filter(! dg_raceid %in% races_missing_data)
+
+# find races where stall numbers are missing
+races_missing_stall <- data %>%  
+  filter(is.na(hostall)) %>% 
+  pull(dg_raceid)
+data <- data %>% 
+  filter(!dg_raceid %in% races_missing_stall)
+
+data <- data %>% 
+  arrange(date_time) %>% 
+  mutate(holastsprat = na.locf(holastsprat))
+
+
+
+
 ```
 
 LIFE%WIN = hosr730, hosr
@@ -83,5 +116,28 @@ POSTPOS = hostall
 
 # Split dataset
 
+```{r}
+train_data <- data %>% 
+  filter(date_time < "2021-01-01 01:00:00")
+```
 
+Model
+
+ + hosr + homean4sprat + homeanearn365 + holastsprat + josr365 + 
+    jowins365 + weight + hostall + hono + hofirstrace
+
+```{r}
+model <- clogit(
+  win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + josr365 + 
+    jowins365 + weight + hostall + hono + hofirstrace + odds + 
+    strata(dg_raceid),
+  data = train_data, method = "exact"
+)
+summary(model)
+```
+
+
+```{r}
+model$coefficients
+```
 
