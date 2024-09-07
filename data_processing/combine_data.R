@@ -151,7 +151,7 @@ raceresults_df_list <- lapply(
   col_names = c(
     "dg_raceid", "position", "horse", "dg_horseid", "horse_infos", "pedigree", 
     "hosex", "hoage", "hono", "hostall", "dist_btn_chr", "hoprize", 
-    "owner", "trainer", "jockey", "weight", "odds"
+    "owner", "trainer", "jockey", "weight_chr", "odds"
   ),
   col_types = list(
     col_integer(), col_character(), col_character(), col_integer(),
