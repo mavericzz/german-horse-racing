@@ -230,7 +230,7 @@ ggplot(flat_winningtimes, aes(x = race_distance, y = race_time_secs)) +
 
 races <- races[!(races$dg_raceid == 1318344 & races$dg_horseid == 25466282), ]
 races <- races[!(races$dg_raceid == 1310232 & races$dg_horseid == 18568430), ]
-
+races <- races[!(races$dg_raceid == 1293355 & races$dg_horseid == 24808977), ]
 
 ##----------- Replace missing odds with values -------------------------------##
 
@@ -383,6 +383,22 @@ races <- races %>%
     weight_allowance = as.numeric(str_replace(weight_allowance, ",", "\\."))
   )
   
+
+##------------------------------ Odds ----------------------------------------##
+
+odds_smaller_one <- races %>% 
+  filter(odds < 1) %>% 
+  select(dg_raceid, date_time, horse, dg_horseid)
+
+# import lookup table
+odds_lookup_tbl <- read.csv("../data/raw/odds_corrections.csv")
+# joining lookup table with main dataset
+races <- races %>% 
+  left_join(odds_lookup_tbl, by = c("dg_raceid", "dg_horseid")) %>% 
+  mutate(
+    odds = coalesce(odds.y, odds.x)
+  ) %>% 
+  select(-c("odds.x", "odds.y")) 
 
 
 ##----------- Save data frame as RData file ----------------------------------##
