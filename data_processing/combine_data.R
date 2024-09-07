@@ -196,7 +196,7 @@ races <- races %>% distinct()
 
 ##----------- Save as RData file ---------------------------------------------##
 
-saveRDS(races, "../data/intermediate/im_german_racing_data.RData")
+saveRDS(races, "../data/intermediate/im_german_racing_data.Rds")
 
 rm(list = ls())
 
