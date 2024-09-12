@@ -386,12 +386,13 @@ races <- races %>%
 
 ##------------------------------ Odds ----------------------------------------##
 
-odds_smaller_one <- races %>% 
+odds_below_one <- races %>% 
   filter(odds < 1) %>% 
   select(dg_raceid, date_time, horse, dg_horseid)
 
 # import lookup table
-odds_lookup_tbl <- read.csv("../data/raw/odds_corrections.csv")
+odds_lookup_tbl <- read.csv("../data/raw/odds_corrections.csv") %>% 
+  select(dg_raceid, dg_horseid, odds)
 # joining lookup table with main dataset
 races <- races %>% 
   left_join(odds_lookup_tbl, by = c("dg_raceid", "dg_horseid")) %>% 
@@ -399,6 +400,12 @@ races <- races %>%
     odds = coalesce(odds.y, odds.x)
   ) %>% 
   select(-c("odds.x", "odds.y")) 
+
+# races with wrong odds --> set odds to NA
+# dg_raceids
+races_wrong_odds <- c(
+  1277400, 1276887, 1277570
+)
 
 
 ##----------- Save data frame as RData file ----------------------------------##
