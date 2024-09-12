@@ -115,5 +115,12 @@ races <- races %>%
 
 
 # Market features
+races <- races %>% 
+  group_by(dg_raceid) %>% 
+  mutate(
+    reciprocal_odds = 1 / odds,
+    sum_rec_odds = sum(reciprocal_odds)
+  )
+
 
 saveRDS(races, "../data/processed/engineered_features.Rds")
