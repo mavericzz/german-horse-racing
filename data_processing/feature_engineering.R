@@ -119,8 +119,11 @@ races <- races %>%
   group_by(dg_raceid) %>% 
   mutate(
     reciprocal_odds = 1 / odds,
-    sum_rec_odds = sum(reciprocal_odds)
-  )
+    sum_rec_odds = sum(reciprocal_odds),
+    # public estimate
+    pub_est = reciprocal_odds / sum_rec_odds
+  ) %>% 
+  ungroup()
 
 
 saveRDS(races, "../data/processed/engineered_features.Rds")
