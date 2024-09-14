@@ -56,7 +56,7 @@ Inspired by Bolton and Chapman's (1986) paper, Bill Benter employed a conditiona
 The data used in our analysis has been acquired by web scraping. We have gathered german horse racing results since 2002 up until now. But only the results since 2019 will be used in training and testing the model because before 2019 the takeout rate was much higher than 15%. Data before 2019 has however been used to construct the necessary features. Similar features to those mentioned by Bolton and Chapman (1986) have been engineered.
 
 ```{r}
-data <- readRDS("../data/processed/cleaned_german_racing_data.RData")
+data <- readRDS("../data/processed/cleaned_german_racing_data.Rds")
 ```
 
 LIFE%WIN = hosr730, hosr
@@ -82,6 +82,9 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 Some jump races are also part of the dataset. But we only use flat races run on turf. We won't analyse stakes races. Instead we concentrate on Handicap races and in particular "Ausgleich IV" races which are lowest class of racing Germany. But those race are run very frequently with many observations per horse in a year. 
 
 
+DEAD HEATS!!
+
+
 ```{r}
 data <- races %>% 
   filter(
@@ -91,9 +94,9 @@ data <- races %>%
     surface == "Turf"
   ) %>% 
   select(
-    win, date_time, hosr730, hosr, homean4sprat, homeanearn365, holastsprat, 
-    hoattend, josr365, jowins365, weight, hostall, hono, odds, dg_raceid, 
-    dg_horseid, horse, hofirstrace 
+    dg_raceid, win, date_time, hosr730, hosr, homean4sprat, homeanearn365, 
+    holastsprat, hoattend, josr365, jowins365, weight, hostall, hono, odds, 
+    dg_raceid, dg_horseid, horse, hofirstrace 
   ) %>% 
   filter(
     !is.na(odds)
@@ -133,7 +136,7 @@ WEIGHT = weight
 POSTPOS = hostall
 
 
-# Split dataset
+# Train Data
 
 ```{r}
 train_data <- data %>% 
@@ -146,6 +149,24 @@ Model
     jowins365 + weight + hostall + hono + hofirstrace
 
 ```{r}
+features <- c(
+  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", "josr365", 
+  "jowins365", "weight", "hostall", "hono", "hofirstrace", "odds"
+)
+
+model_formula <- as.formula(
+  paste(
+    "win",
+    paste(paste(features, collapse = " + "), "strata(dg_raceid)", sep = " + "),
+    sep = " ~ "
+  )
+)
+print(model_formula)
+```
+
+
+
+```{r}
 model <- clogit(
   win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + josr365 + 
     jowins365 + weight + hostall + hono + hofirstrace + odds + 
@@ -154,6 +175,52 @@ model <- clogit(
 )
 summary(model)
 ```
+
+
+```{r}
+coeffs <- as.vector(summary(model)$coefficients[, 1])
+coeffs
+```
+
+
+
+# Test Data
+
+```{r}
+test_data <- data %>% 
+  filter(
+    date_time > "2021-01-01 01:00:00" 
+  ) %>% 
+  data.table()
+```
+
+Predictions
+
+```{r}
+predictions <- test_data[, prediction := as.matrix(test_data[, ..features]) %*% coeffs]
+predictions <- predictions %>% 
+  group_by(dg_raceid) %>% 
+  mutate(
+    exp_prediction = exp(prediction),
+    sum_exp_prediction = sum(exp_prediction),
+    my_prob = exp_prediction / sum_exp_prediction,
+    expected_value = my_prob * (odds - 1) - (1 - my_prob)
+  ) %>% 
+  filter(
+    expected_value > 0,
+    expected_value == max(expected_value),
+    odds < 10
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    earnings = ifelse(
+      win == 1, odds - 1, -1
+    )
+  )
+
+sum(predictions$earnings)
+```
+
 
 
 ```{r}
