@@ -113,6 +113,12 @@ races <- races %>%
   ) %>% 
   ungroup()
 
+# Trainer features
+races <- races %>% 
+  group_by(trainer) %>% 
+  
+
+
 
 # Market features
 races <- races %>% 
