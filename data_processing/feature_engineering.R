@@ -1,4 +1,5 @@
 # Loading packages
+library(data.table)
 library(runner)
 library(tidyverse)
 library(zoo)
@@ -73,9 +74,26 @@ races <- races %>%
     holastsprat = lag(hosprat, default = 0),
     homean4sprat = lag(
       rollapplyr(hosprat, 4, mean, na.rm = TRUE, partial = TRUE), default = 0
-    )  
+    ),
+    # hodays
+    hodays = difftime(date_time, lag(date_time, default = NA), units = "days"),
+    hodays_dirt = difftime(
+      date_time,
+      lag(na.locf(if_else(surface == "Dirt", date_time, NA)), default = NA),
+      units = "days"
+    )
   ) %>% 
   ungroup()
+
+# hodays
+races <- setDT(races)
+races <- races[order(date_time), ][, `:=`(
+  hodays = as.numeric(difftime(date_time, shift(date_time, fill = NA), units = "days")) 
+), by('dg_horseid')]
+
+
+
+
 
 # Jockey features
 races <- races %>% 
