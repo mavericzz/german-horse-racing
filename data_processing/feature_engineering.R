@@ -116,7 +116,7 @@ races <- races %>%
 # Trainer features
 races <- races %>% 
   group_by(trainer) %>% 
-  
+  ungroup()
 
 
 
