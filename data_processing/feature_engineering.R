@@ -135,9 +135,24 @@ races <- races %>%
   ) %>% 
   ungroup()
 
+
 # Trainer features
 races <- races %>% 
   group_by(trainer) %>% 
+  mutate(
+    trattend1 = row_number() - 1,
+    trwins1 = lag(cumsum(win), default = 0)
+  ) %>% 
+  ungroup()
+
+races <- races %>% 
+  group_by(trainer, dg_raceid) %>% 
+  mutate(
+    trattend = min(trattend1),
+    trwins = min(trwins1),
+    trsr = ifelse(trattend == 0, 0, trwins / trattend)
+  ) %>% 
+  select(-c(trattend1, trwins1)) %>% 
   ungroup()
 
 
