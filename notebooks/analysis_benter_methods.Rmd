@@ -96,10 +96,13 @@ data <- races %>%
   select(
     dg_raceid, win, date_time, hosr730, hosr, homean4sprat, homeanearn365, 
     holastsprat, hoattend, josr365, jowins365, weight, hostall, hono, odds, 
-    dg_raceid, dg_horseid, horse, hofirstrace 
+    dg_raceid, dg_horseid, horse, hofirstrace, hodays 
   ) %>% 
   filter(
     !is.na(odds)
+  ) %>% 
+  mutate(
+    hodays = ifelse(hofirstrace == 1, 0, hodays)
   )
 
 # homean4sprat missing (different reasons) exclude those races
@@ -151,7 +154,7 @@ Model
 ```{r}
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", "josr365", 
-  "jowins365", "weight", "hostall", "hono", "hofirstrace", "odds"
+  "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "odds"
 )
 
 model_formula <- as.formula(
@@ -168,9 +171,7 @@ print(model_formula)
 
 ```{r}
 model <- clogit(
-  win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + josr365 + 
-    jowins365 + weight + hostall + hono + hofirstrace + odds + 
-    strata(dg_raceid),
+  model_formula,
   data = train_data, method = "exact"
 )
 summary(model)
@@ -223,19 +224,5 @@ sum(predictions$earnings)
 
 
 
-```{r}
-model$coefficients
-```
 
-```{r}
-knitr::include_graphics("model_specification1.jpg")
-```
-```{r}
-knitr::include_graphics("model_specification2.jpg")
-```
-```{r}
-knitr::include_graphics("model_specification3.jpg")
-```
-```{r}
-knitr::include_graphics("model_specification4.jpg")
-```
+
