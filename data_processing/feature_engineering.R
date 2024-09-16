@@ -76,7 +76,9 @@ races <- races %>%
       rollapplyr(hosprat, 4, mean, na.rm = TRUE, partial = TRUE), default = 0
     ),
     # hodays: days since last race
-    hodays = difftime(date_time, lag(date_time, default = NA), units = "days"),
+    hodays = as.numeric(
+      difftime(date_time, lag(date_time, default = NA), units = "days")
+    ),
     hodays_turf = difftime(
       date_time,
       lag(
