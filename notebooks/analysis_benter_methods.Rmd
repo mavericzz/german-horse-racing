@@ -96,7 +96,7 @@ data <- races %>%
   select(
     dg_raceid, win, date_time, hosr730, hosr, homean4sprat, homeanearn365, 
     holastsprat, hoattend, josr365, jowins365, weight, hostall, hono, odds, 
-    dg_raceid, dg_horseid, horse, hofirstrace, hodays 
+    dg_raceid, dg_horseid, horse, hofirstrace, hodays, trsr 
   ) %>% 
   filter(
     !is.na(odds)
@@ -154,7 +154,8 @@ Model
 ```{r}
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", "josr365", 
-  "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "odds"
+  "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "trsr", 
+  "odds"
 )
 
 model_formula <- as.formula(
