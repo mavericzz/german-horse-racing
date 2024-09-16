@@ -75,22 +75,24 @@ races <- races %>%
     homean4sprat = lag(
       rollapplyr(hosprat, 4, mean, na.rm = TRUE, partial = TRUE), default = 0
     ),
-    # hodays
+    # hodays: days since last race
     hodays = difftime(date_time, lag(date_time, default = NA), units = "days"),
+    hodays_turf = difftime(
+      date_time,
+      lag(
+        na.locf(if_else(surface == "Turf", date_time, NA), na.rm = FALSE)
+      ),
+      units = "days"
+    ),
     hodays_dirt = difftime(
       date_time,
-      lag(na.locf(if_else(surface == "Dirt", date_time, NA)), default = NA),
+      lag(
+        na.locf(if_else(surface == "Dirt", date_time, NA), na.rm = FALSE)
+      ),
       units = "days"
     )
   ) %>% 
   ungroup()
-
-# hodays
-races <- setDT(races)
-races <- races[order(date_time), ][, `:=`(
-  hodays = as.numeric(difftime(date_time, shift(date_time, fill = NA), units = "days")) 
-), by('dg_horseid')]
-
 
 
 
