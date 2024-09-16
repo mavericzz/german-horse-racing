@@ -137,7 +137,7 @@ data <- races %>%
   select(
     dg_raceid, win, date_time, hosr730, hosr, homean4sprat, homeanearn365, 
     holastsprat, hoattend, josr365, jowins365, weight, hostall, hono, odds, 
-    dg_raceid, dg_horseid, horse, hofirstrace, hodays 
+    dg_raceid, dg_horseid, horse, hofirstrace, hodays, trsr 
   ) %>% 
   filter(
     !is.na(odds)
@@ -185,7 +185,8 @@ Model
 ``` r
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", "josr365", 
-  "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "odds"
+  "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "trsr", 
+  "odds"
 )
 
 model_formula <- as.formula(
@@ -200,7 +201,7 @@ print(model_formula)
 
     ## win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + 
     ##     josr365 + jowins365 + weight + hostall + hono + hofirstrace + 
-    ##     hodays + odds + strata(dg_raceid)
+    ##     hodays + trsr + odds + strata(dg_raceid)
 
 ``` r
 model <- clogit(
@@ -213,56 +214,58 @@ summary(model)
     ## Call:
     ## coxph(formula = Surv(rep(1, 5699L), win) ~ hosr730 + hosr + homean4sprat + 
     ##     homeanearn365 + holastsprat + josr365 + jowins365 + weight + 
-    ##     hostall + hono + hofirstrace + hodays + odds + strata(dg_raceid), 
+    ##     hostall + hono + hofirstrace + hodays + trsr + odds + strata(dg_raceid), 
     ##     data = train_data, method = "exact")
     ## 
     ##   n= 5699, number of events= 532 
     ## 
     ##                     coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## hosr730       -1.812e+00  1.634e-01  1.492e+00  -1.214   0.2246    
-    ## hosr           9.264e-01  2.525e+00  1.547e+00   0.599   0.5493    
-    ## homean4sprat   3.749e-03  1.004e+00  4.655e-03   0.806   0.4205    
-    ## homeanearn365  3.879e-05  1.000e+00  2.063e-04   0.188   0.8509    
-    ## holastsprat    4.754e-03  1.005e+00  3.128e-03   1.520   0.1286    
-    ## josr365        1.109e+00  3.032e+00  5.973e-01   1.857   0.0633 .  
-    ## jowins365      9.558e-04  1.001e+00  2.387e-03   0.400   0.6889    
-    ## weight         2.545e-02  1.026e+00  2.772e-02   0.918   0.3586    
-    ## hostall        1.912e-03  1.002e+00  1.335e-02   0.143   0.8861    
-    ## hono           3.498e-02  1.036e+00  2.703e-02   1.294   0.1956    
-    ## hofirstrace    4.126e-01  1.511e+00  5.309e-01   0.777   0.4371    
-    ## hodays         1.134e-04  1.000e+00  7.102e-04   0.160   0.8731    
-    ## odds          -9.414e-02  9.102e-01  8.435e-03 -11.161   <2e-16 ***
+    ## hosr730       -2.301e+00  1.001e-01  1.495e+00  -1.539 0.123746    
+    ## hosr           1.359e+00  3.894e+00  1.549e+00   0.878 0.380111    
+    ## homean4sprat   4.211e-03  1.004e+00  4.682e-03   0.899 0.368503    
+    ## homeanearn365  1.377e-04  1.000e+00  2.045e-04   0.674 0.500580    
+    ## holastsprat    4.679e-03  1.005e+00  3.146e-03   1.487 0.136908    
+    ## josr365        6.623e-01  1.939e+00  6.741e-01   0.982 0.325871    
+    ## jowins365      2.266e-03  1.002e+00  1.898e-03   1.194 0.232394    
+    ## weight         1.800e-02  1.018e+00  2.779e-02   0.648 0.517044    
+    ## hostall        1.249e-03  1.001e+00  1.336e-02   0.093 0.925510    
+    ## hono           3.569e-02  1.036e+00  2.715e-02   1.314 0.188686    
+    ## hofirstrace    3.705e-01  1.448e+00  5.362e-01   0.691 0.489666    
+    ## hodays         4.654e-05  1.000e+00  7.533e-04   0.062 0.950739    
+    ## trsr           4.237e+00  6.923e+01  1.199e+00   3.533 0.000411 ***
+    ## odds          -8.780e-02  9.159e-01  8.450e-03 -10.390  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##               exp(coef) exp(-coef) lower .95 upper .95
-    ## hosr730          0.1634     6.1209  0.008777    3.0410
-    ## hosr             2.5255     0.3960  0.121777   52.3753
-    ## homean4sprat     1.0038     0.9963  0.994641    1.0130
-    ## homeanearn365    1.0000     1.0000  0.999635    1.0004
-    ## holastsprat      1.0048     0.9953  0.998624    1.0109
-    ## josr365          3.0322     0.3298  0.940518    9.7755
-    ## jowins365        1.0010     0.9990  0.996284    1.0057
-    ## weight           1.0258     0.9749  0.971528    1.0831
-    ## hostall          1.0019     0.9981  0.976033    1.0285
-    ## hono             1.0356     0.9656  0.982159    1.0919
-    ## hofirstrace      1.5107     0.6620  0.533662    4.2764
-    ## hodays           1.0001     0.9999  0.998722    1.0015
-    ## odds             0.9102     1.0987  0.895233    0.9253
+    ## hosr730          0.1001    9.98656  0.005346    1.8757
+    ## hosr             3.8942    0.25679  0.187051   81.0741
+    ## homean4sprat     1.0042    0.99580  0.995046    1.0135
+    ## homeanearn365    1.0001    0.99986  0.999737    1.0005
+    ## holastsprat      1.0047    0.99533  0.998515    1.0109
+    ## josr365          1.9392    0.51567  0.517403    7.2681
+    ## jowins365        1.0023    0.99774  0.998548    1.0060
+    ## weight           1.0182    0.98216  0.964201    1.0752
+    ## hostall          1.0013    0.99875  0.975364    1.0278
+    ## hono             1.0363    0.96494  0.982628    1.0930
+    ## hofirstrace      1.4484    0.69042  0.506332    4.1433
+    ## hodays           1.0000    0.99995  0.998571    1.0015
+    ## trsr            69.2341    0.01444  6.597741  726.5154
+    ## odds             0.9159    1.09177  0.900897    0.9312
     ## 
-    ## Concordance= 0.736  (se = 0.013 )
-    ## Likelihood ratio test= 331.4  on 13 df,   p=<2e-16
-    ## Wald test            = 177.1  on 13 df,   p=<2e-16
-    ## Score (logrank) test = 192  on 13 df,   p=<2e-16
+    ## Concordance= 0.741  (se = 0.013 )
+    ## Likelihood ratio test= 343.8  on 14 df,   p=<2e-16
+    ## Wald test            = 193.4  on 14 df,   p=<2e-16
+    ## Score (logrank) test = 218.5  on 14 df,   p=<2e-16
 
 ``` r
 coeffs <- as.vector(summary(model)$coefficients[, 1])
 coeffs
 ```
 
-    ##  [1] -1.811705e+00  9.264366e-01  3.749374e-03  3.878921e-05  4.754198e-03
-    ##  [6]  1.109275e+00  9.557807e-04  2.545456e-02  1.912220e-03  3.498165e-02
-    ## [11]  4.125584e-01  1.134137e-04 -9.413940e-02
+    ##  [1] -2.301240e+00  1.359493e+00  4.210846e-03  1.377145e-04  4.679069e-03
+    ##  [6]  6.622799e-01  2.266201e-03  1.800236e-02  1.249498e-03  3.568654e-02
+    ## [11]  3.704604e-01  4.653997e-05  4.237494e+00 -8.780169e-02
 
 # Test Data
 
@@ -307,4 +310,4 @@ predictions <- predictions %>%
 sum(predictions$earnings)
 ```
 
-    ## [1] -64.3
+    ## [1] -42.6
