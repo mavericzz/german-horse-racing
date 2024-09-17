@@ -1,67 +1,12 @@
-R Notebook
+Using Bill Benter’s Methods in German Horse Racing
 ================
 
 ``` r
 library (data.table)
 library(survival)
 library(tidyverse)
-```
-
-    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-    ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
-    ## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
-    ## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
-    ## ✔ purrr     1.0.2     
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::between()     masks data.table::between()
-    ## ✖ dplyr::filter()      masks stats::filter()
-    ## ✖ dplyr::first()       masks data.table::first()
-    ## ✖ lubridate::hour()    masks data.table::hour()
-    ## ✖ lubridate::isoweek() masks data.table::isoweek()
-    ## ✖ dplyr::lag()         masks stats::lag()
-    ## ✖ dplyr::last()        masks data.table::last()
-    ## ✖ lubridate::mday()    masks data.table::mday()
-    ## ✖ lubridate::minute()  masks data.table::minute()
-    ## ✖ lubridate::month()   masks data.table::month()
-    ## ✖ lubridate::quarter() masks data.table::quarter()
-    ## ✖ lubridate::second()  masks data.table::second()
-    ## ✖ purrr::transpose()   masks data.table::transpose()
-    ## ✖ lubridate::wday()    masks data.table::wday()
-    ## ✖ lubridate::week()    masks data.table::week()
-    ## ✖ lubridate::yday()    masks data.table::yday()
-    ## ✖ lubridate::year()    masks data.table::year()
-    ## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-
-``` r
 library(zoo)
 ```
-
-    ## 
-    ## Attaching package: 'zoo'
-    ## 
-    ## The following objects are masked from 'package:data.table':
-    ## 
-    ##     yearmon, yearqtr
-    ## 
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     as.Date, as.Date.numeric
-
-``` r
-# set working directory to directory in which script is stored
-script_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
-setwd(script_path)
-```
-
-``` r
-getwd()
-```
-
-    ## [1] "C:/Users/chris/Documents/GitHub/german-horse-racing/notebooks"
-
-Contents - Horse Racing in Germany: Betting and Takeout - Benter’s
-Model - Data - Features - Train Data - Test Data
 
 # 1 Horse Racing in Germany
 
@@ -69,13 +14,13 @@ Model - Data - Features - Train Data - Test Data
 
 Germany features two primary types of horse racing: Harness racing and
 flat racing. Steeplechasing and hurdling have largely faded into
-history. This notebook will concentrate on flat racing. Betting plays a
-crucial role in German racing, as a portion of the prize money is funded
-by the parimutuel betting operator’s profits.
+history. This notebook will concentrate on flat racing.
 
+Betting plays a crucial role in German horse racing, as a portion of the
+prize money is funded by the parimutuel betting operator’s profits.
 Betting in Germany occurs through two primary channels: bookmakers
-(fixed odds) and the totalizator (parimutuel). For this analysis, we’ll
-focus exclusively on parimutuel odds.
+(fixed odds) and the totalizator (parimutuel). For this analysis, the
+focus lies exclusively on parimutuel odds.
 
 ## 1.2 Takeout
 
@@ -94,35 +39,52 @@ German horse racing.
 
 # 3 Data
 
-The data used in our analysis has been acquired by web scraping. We have
-gathered german horse racing results since 2002 up until now. But only
-the results since 2019 will be used in training and testing the model
-because before 2019 the takeout rate was much higher than 15%. Data
-before 2019 has however been used to construct the necessary features.
-Similar features to those mentioned by Bolton and Chapman (1986) have
-been engineered.
+The data used in this analysis has been acquired by web scraping. German
+horse racing results since 2002 up until 2024 have been gathered. But
+only the results since 2019 will be used in training and testing the
+model because before 2019 the takeout rate was much higher than 15%.
+Data before 2019 has however been used to construct the necessary
+features. Similar features to those mentioned by Bolton and Chapman
+(1986) have been engineered.
 
 ``` r
-data <- readRDS("../data/processed/cleaned_german_racing_data.Rds")
+# Import data
+races <- readRDS("../data/processed/engineered_features.Rds")
 ```
 
-LIFE%WIN = hosr730, hosr AVESPRAT = homean4sprat W/RACE = homeanearn365
-LSPEDRAT = holastsprat JOCK%WIN = josr365 JOCK#WIN = jowins365 WEIGHT =
-weight POSTPOS = hostall
+## 3.1 Feature Descriptions
 
-## 3.1 Data Import
+### Horse-related features
+
+- **`hosr730`**: Horse’s strike rate in the last 2 years
+- **`hosr`**: Horse’s career strike rate
+- **`homean4sprat`**: Horse’s mean speed rating in the last 4 races
+- **`homeanearn365`**: Horse’s mean earnings in the last 365 days
+- **`holastsprat`**: Horse’s last speed rating
+- **`hofirstrace`**: Indicator if it’s the horse’s first race
+- **`hodays`**: Number of days since the horse’s last race
+- **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for
+  the first time
+
+### Trainer-related features
+
+- **`trsr`**: Trainer’s strike rate
 
 ``` r
-races <- readRDS("../data/processed/engineered_features.Rds")
+features <- c(
+  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", "josr365", 
+  "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "trsr", 
+  "blinkers1sttime", "odds"
+)
 ```
 
 ## 3.2 Filtering the Data
 
-Some jump races are also part of the dataset. But we only use flat races
-run on turf. We won’t analyse stakes races. Instead we concentrate on
-Handicap races and in particular “Ausgleich IV” races which are lowest
-class of racing Germany. But those race are run very frequently with
-many observations per horse in a year.
+Some jump races are also part of the dataset. But only flat races run on
+turf will be used. Stakes races won’t be analysed. The focus will lie
+instead on Handicap races and in particular “Ausgleich IV” races which
+are the lowest class of racing Germany. Those races are run very
+frequently with many observations per horse in a year.
 
 DEAD HEATS!!
 
