@@ -96,7 +96,7 @@ data <- races %>%
   select(
     dg_raceid, win, date_time, hosr730, hosr, homean4sprat, homeanearn365, 
     holastsprat, hoattend, josr365, jowins365, weight, hostall, hono, odds, 
-    dg_raceid, dg_horseid, horse, hofirstrace, hodays, trsr 
+    dg_raceid, dg_horseid, horse, hofirstrace, hodays, trsr, blinkers1sttime 
   ) %>% 
   filter(
     !is.na(odds)
@@ -155,7 +155,7 @@ Model
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", "josr365", 
   "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "trsr", 
-  "odds"
+  "blinkers1sttime", "odds"
 )
 
 model_formula <- as.formula(
@@ -210,8 +210,7 @@ predictions <- predictions %>%
   ) %>% 
   filter(
     expected_value > 0,
-    expected_value == max(expected_value),
-    odds < 10
+    expected_value == max(expected_value)
   ) %>% 
   ungroup() %>% 
   mutate(
