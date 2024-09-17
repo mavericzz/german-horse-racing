@@ -92,7 +92,9 @@ races <- races %>%
         na.locf(if_else(surface == "Dirt", date_time, NA), na.rm = FALSE)
       ),
       units = "days"
-    )
+    ),
+    # first time blinkers
+    blinkers1sttime = as.integer(cumsum(blinkers == 1) == 1)
   ) %>% 
   ungroup()
 
