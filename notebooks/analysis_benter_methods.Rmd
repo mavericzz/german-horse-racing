@@ -1,9 +1,9 @@
 ---
-title: "R Notebook"
+title: "Using Bill Benter's Methods in German Horse Racing"
 output: github_document
 ---
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library (data.table)
 library(survival)
 library(tidyverse)
