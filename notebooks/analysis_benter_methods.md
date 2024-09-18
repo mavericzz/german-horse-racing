@@ -63,12 +63,24 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 - **`holastsprat`**: Horse’s last speed rating
 - **`hofirstrace`**: Indicator if it’s the horse’s first race
 - **`hodays`**: Number of days since the horse’s last race
+- **`hostall`**: Horse’s stall number
+- **`hono`**: Horse’s number in the race card
 - **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for
   the first time
+- **`weight`**: Weight carried by the horse
+
+### Jockey-related features
+
+- **`josr365`**: Jockey’s strike rate in the last 365 days
+- **`jowins365`**: Number of wins for the jockey in the last 365 days
 
 ### Trainer-related features
 
 - **`trsr`**: Trainer’s strike rate
+
+### Other features
+
+- **`odds`**: Betting odds for the horse
 
 ``` r
 features <- c(
