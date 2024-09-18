@@ -103,9 +103,12 @@ data <- races %>%
     surface == "Turf"
   ) %>% 
   select(
-    dg_raceid, win, date_time, hosr730, hosr, homean4sprat, homeanearn365, 
-    holastsprat, hoattend, josr365, jowins365, weight, hostall, hono, odds, 
-    dg_raceid, dg_horseid, horse, hofirstrace, hodays, trsr, blinkers1sttime 
+    all_of(
+      c(
+        features,
+        "dg_raceid", "date_time", "win", "dg_horseid", "horse"
+      )
+    )
   ) %>% 
   filter(
     !is.na(odds)
@@ -132,20 +135,8 @@ data <- data %>%
 data <- data %>% 
   arrange(date_time) %>% 
   mutate(holastsprat = na.locf(holastsprat))
-
-
-
-
 ```
 
-LIFE%WIN = hosr730, hosr
-AVESPRAT = homean4sprat
-W/RACE = homeanearn365
-LSPEDRAT = holastsprat
-JOCK%WIN = josr365
-JOCK#WIN = jowins365
-WEIGHT = weight
-POSTPOS = hostall
 
 
 # Train Data
@@ -161,11 +152,6 @@ Model
     jowins365 + weight + hostall + hono + hofirstrace
 
 ```{r}
-features <- c(
-  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", "josr365", 
-  "jowins365", "weight", "hostall", "hono", "hofirstrace", "hodays", "trsr", 
-  "blinkers1sttime", "odds"
-)
 
 model_formula <- as.formula(
   paste(
