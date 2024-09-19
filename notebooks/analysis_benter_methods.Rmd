@@ -77,9 +77,9 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ```{r}
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", 
-  "hofirstrace", "hodays", "hostall", "hono", "blinkers1sttime", "weight",
+  "hofirstrace", "hodays", "draweffect_mean", "hono", "blinkers1sttime", "weight",
   "josr365", "jowins365", 
-  "trsr", 
+  "trsr",
   "odds"
 )
 ```
@@ -106,7 +106,7 @@ data <- races %>%
     all_of(
       c(
         features,
-        "dg_raceid", "date_time", "win", "dg_horseid", "horse"
+        "dg_raceid", "date_time", "win", "dg_horseid", "horse", "hostall"
       )
     )
   ) %>% 
