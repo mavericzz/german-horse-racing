@@ -171,4 +171,49 @@ races <- races %>%
   ungroup()
 
 
+
+##---------------------------- DRAW EFFECT -----------------------------------##
+
+# In german racing stall 1 isn't always stall 1. 
+# Instead it is the most inner stall
+# So the draw effect will be calculated as the disadvantages of the outer stalls
+# in comparison to the innermost stall.
+ausgleich4 <- races %>% 
+  filter(
+    race_class_old == "Ausgleich IV", surface == "Turf", !is.na(hostall)
+  ) %>%
+  group_by(dg_raceid) %>% 
+  mutate(
+    # there are cases of non runners in stall 1. Innermost stall will be stall 1
+    hodraw = min_rank(hostall)
+  )
+distance_stall1 <- ausgleich4 %>% 
+  filter(hostall == 1) %>% 
+  select(dg_raceid, dist_btn_cum) %>% 
+  rename(diststall1winner = dist_btn_cum)
+ausgleich4 <- left_join(ausgleich4, distance_stall1, by = c("dg_raceid")) %>% 
+  mutate(diststall1 = dist_btn_cum - diststall1winner) %>% 
+  select(- diststall1winner)
+
+# Calculate draweffect
+draweffect <- ausgleich4 %>% 
+  filter(year(date_time) < 2019) %>% 
+  group_by(dg_course, race_distance, hodraw) %>% 
+  summarise(
+    count = n(),
+    draweffect_mean = mean(diststall1, na.rm = TRUE),
+    draweffect_median = median(diststall1, na.rm = TRUE)
+  ) %>% 
+  select(- count)
+races <- races %>% 
+  group_by(dg_raceid) %>% 
+  mutate(hodraw = min_rank(hostall)) %>% 
+  ungroup() %>% 
+  left_join(
+    draweffect, by = c("dg_course", "race_distance", "hodraw")
+  )
+
+
+
+
 saveRDS(races, "../data/processed/engineered_features.Rds")
