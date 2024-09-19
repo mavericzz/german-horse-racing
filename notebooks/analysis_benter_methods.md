@@ -85,9 +85,9 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ``` r
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", 
-  "hofirstrace", "hodays", "hostall", "hono", "blinkers1sttime", "weight",
+  "hofirstrace", "hodays", "draweffect_mean", "hono", "blinkers1sttime", "weight",
   "josr365", "jowins365", 
-  "trsr", 
+  "trsr",
   "odds"
 )
 ```
@@ -114,7 +114,7 @@ data <- races %>%
     all_of(
       c(
         features,
-        "dg_raceid", "date_time", "win", "dg_horseid", "horse"
+        "dg_raceid", "date_time", "win", "dg_horseid", "horse", "hostall"
       )
     )
   ) %>% 
@@ -169,7 +169,7 @@ print(model_formula)
 ```
 
     ## win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + 
-    ##     hofirstrace + hodays + hostall + hono + blinkers1sttime + 
+    ##     hofirstrace + hodays + draweffect_mean + hono + blinkers1sttime + 
     ##     weight + josr365 + jowins365 + trsr + odds + strata(dg_raceid)
 
 ``` r
@@ -182,61 +182,62 @@ summary(model)
 
     ## Call:
     ## coxph(formula = Surv(rep(1, 5699L), win) ~ hosr730 + hosr + homean4sprat + 
-    ##     homeanearn365 + holastsprat + hofirstrace + hodays + hostall + 
+    ##     homeanearn365 + holastsprat + hofirstrace + hodays + draweffect_mean + 
     ##     hono + blinkers1sttime + weight + josr365 + jowins365 + trsr + 
     ##     odds + strata(dg_raceid), data = train_data, method = "exact")
     ## 
-    ##   n= 5699, number of events= 532 
+    ##   n= 5639, number of events= 526 
+    ##    (60 observations deleted due to missingness)
     ## 
     ##                       coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## hosr730         -2.424e+00  8.860e-02  1.503e+00  -1.612   0.1069    
-    ## hosr             1.407e+00  4.084e+00  1.550e+00   0.908   0.3639    
-    ## homean4sprat     4.428e-03  1.004e+00  4.689e-03   0.944   0.3449    
-    ## homeanearn365    1.512e-04  1.000e+00  2.056e-04   0.736   0.4619    
-    ## holastsprat      4.667e-03  1.005e+00  3.148e-03   1.482   0.1383    
-    ## hofirstrace      3.764e-01  1.457e+00  5.368e-01   0.701   0.4832    
-    ## hodays           4.888e-05  1.000e+00  7.569e-04   0.065   0.9485    
-    ## hostall          2.002e-03  1.002e+00  1.341e-02   0.149   0.8813    
-    ## hono             3.538e-02  1.036e+00  2.714e-02   1.304   0.1923    
-    ## blinkers1sttime -3.032e-01  7.384e-01  1.781e-01  -1.702   0.0887 .  
-    ## weight           1.795e-02  1.018e+00  2.777e-02   0.646   0.5181    
-    ## josr365          6.426e-01  1.901e+00  6.724e-01   0.956   0.3392    
-    ## jowins365        2.280e-03  1.002e+00  1.894e-03   1.204   0.2288    
-    ## trsr             4.341e+00  7.675e+01  1.201e+00   3.615   0.0003 ***
-    ## odds            -8.752e-02  9.162e-01  8.444e-03 -10.366   <2e-16 ***
+    ## hosr730         -2.490e+00  8.292e-02  1.518e+00  -1.640 0.100983    
+    ## hosr             1.397e+00  4.043e+00  1.561e+00   0.895 0.370922    
+    ## homean4sprat     5.184e-03  1.005e+00  4.736e-03   1.095 0.273627    
+    ## homeanearn365    1.508e-04  1.000e+00  2.078e-04   0.726 0.467869    
+    ## holastsprat      4.339e-03  1.004e+00  3.208e-03   1.353 0.176188    
+    ## hofirstrace      3.738e-01  1.453e+00  5.379e-01   0.695 0.487029    
+    ## hodays          -8.829e-05  9.999e-01  7.996e-04  -0.110 0.912080    
+    ## draweffect_mean  3.952e-03  1.004e+00  1.604e-02   0.246 0.805400    
+    ## hono             3.397e-02  1.035e+00  2.721e-02   1.248 0.211904    
+    ## blinkers1sttime -3.168e-01  7.285e-01  1.802e-01  -1.758 0.078714 .  
+    ## weight           1.440e-02  1.015e+00  2.790e-02   0.516 0.605691    
+    ## josr365          6.573e-01  1.930e+00  6.756e-01   0.973 0.330584    
+    ## jowins365        2.272e-03  1.002e+00  1.902e-03   1.195 0.232259    
+    ## trsr             4.451e+00  8.572e+01  1.209e+00   3.681 0.000232 ***
+    ## odds            -8.734e-02  9.164e-01  8.489e-03 -10.289  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##                 exp(coef) exp(-coef) lower .95 upper .95
-    ## hosr730            0.0886   11.28628  0.004654    1.6867
-    ## hosr               4.0841    0.24485  0.195847   85.1663
-    ## homean4sprat       1.0044    0.99558  0.995250    1.0137
-    ## homeanearn365      1.0002    0.99985  0.999748    1.0006
-    ## holastsprat        1.0047    0.99534  0.998497    1.0109
-    ## hofirstrace        1.4570    0.68633  0.508772    4.1726
-    ## hodays             1.0000    0.99995  0.998566    1.0015
-    ## hostall            1.0020    0.99800  0.976011    1.0287
-    ## hono               1.0360    0.96524  0.982349    1.0926
-    ## blinkers1sttime    0.7384    1.35421  0.520830    1.0470
-    ## weight             1.0181    0.98221  0.964175    1.0751
-    ## josr365            1.9015    0.52590  0.509061    7.1026
-    ## jowins365          1.0023    0.99772  0.998568    1.0060
-    ## trsr              76.7493    0.01303  7.296324  807.3177
-    ## odds               0.9162    1.09147  0.901159    0.9315
+    ## hosr730           0.08292   12.06013  0.004231    1.6251
+    ## hosr              4.04336    0.24732  0.189522   86.2628
+    ## homean4sprat      1.00520    0.99483  0.995911    1.0146
+    ## homeanearn365     1.00015    0.99985  0.999744    1.0006
+    ## holastsprat       1.00435    0.99567  0.998053    1.0107
+    ## hofirstrace       1.45330    0.68809  0.506440    4.1704
+    ## hodays            0.99991    1.00009  0.998346    1.0015
+    ## draweffect_mean   1.00396    0.99606  0.972884    1.0360
+    ## hono              1.03456    0.96660  0.980821    1.0912
+    ## blinkers1sttime   0.72846    1.37275  0.511714    1.0370
+    ## weight            1.01451    0.98570  0.960515    1.0715
+    ## josr365           1.92960    0.51824  0.513333    7.2533
+    ## jowins365         1.00227    0.99773  0.998545    1.0060
+    ## trsr             85.72071    0.01167  8.013594  916.9468
+    ## odds              0.91636    1.09127  0.901243    0.9317
     ## 
     ## Concordance= 0.74  (se = 0.013 )
-    ## Likelihood ratio test= 346.8  on 15 df,   p=<2e-16
-    ## Wald test            = 196.5  on 15 df,   p=<2e-16
-    ## Score (logrank) test = 221.8  on 15 df,   p=<2e-16
+    ## Likelihood ratio test= 345.2  on 15 df,   p=<2e-16
+    ## Wald test            = 195.8  on 15 df,   p=<2e-16
+    ## Score (logrank) test = 221.2  on 15 df,   p=<2e-16
 
 ``` r
 coeffs <- as.vector(summary(model)$coefficients[, 1])
 coeffs
 ```
 
-    ##  [1] -2.423588e+00  1.407093e+00  4.428323e-03  1.512430e-04  4.666526e-03
-    ##  [6]  3.763894e-01  4.887573e-05  2.001574e-03  3.537706e-02 -3.032204e-01
-    ## [11]  1.795020e-02  6.426390e-01  2.280086e-03  4.340544e+00 -8.752413e-02
+    ##  [1] -2.489905e+00  1.397075e+00  5.184435e-03  1.508272e-04  4.339413e-03
+    ##  [6]  3.738334e-01 -8.828933e-05  3.952303e-03  3.397179e-02 -3.168166e-01
+    ## [11]  1.440484e-02  6.573119e-01  2.272273e-03  4.451094e+00 -8.734159e-02
 
 # Test Data
 
@@ -280,4 +281,4 @@ predictions <- predictions %>%
 sum(predictions$earnings)
 ```
 
-    ## [1] -43.2
+    ## [1] -28.5
