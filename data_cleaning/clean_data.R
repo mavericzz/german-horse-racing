@@ -406,6 +406,44 @@ races_wrong_odds <- c(
 )
 
 
+races <- races %>% 
+  mutate(
+    weightadj3yo = str_extract(
+      description,
+      "GAG\\s*([+-]?\\d+,?\\d*)\\s*f\\.3j\\."
+    ),
+    weightadj3yo = as.numeric(
+      str_replace(
+        str_replace_all(weightadj3yo, "GAG\\s*|\\s*f\\.3j\\.", ""),
+        ",", "."
+      )
+    ),
+    weightadj4yoplus = str_extract(
+      description,
+      "([+-]?\\d+,?\\d*)\\s*f\\.4j\\.u\\.ält\\."
+    ),
+    weightadj4yoplus = as.numeric(
+      str_replace(
+        str_replace_all(weightadj4yoplus, "\\s*f\\.4j\\.u\\.ält\\.", ""),
+        ",", "."
+      )
+    )
+  ) %>% 
+  mutate_at(
+    vars(weightadj3yo, weightadj4yoplus), ~replace_na(., 0)
+  ) %>% 
+  mutate(
+    gag = ifelse(
+      hoage <= 3,
+      weight + weight_allowance - weight_penalty - weightadj3yo,
+      weight + weight_allowance - weight_penalty - weightadj4yoplus
+    )  
+  )
+
+
+
+
+
 ##----------- Save data frame as RData file ----------------------------------##
 
 saveRDS(races, "../data/processed/cleaned_german_racing_data.Rds")
