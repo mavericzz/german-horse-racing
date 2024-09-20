@@ -211,10 +211,36 @@ races <- races %>%
   ungroup() %>% 
   left_join(
     draweffect, by = c("dg_course", "race_distance", "hodraw")
-  )
+  ) %>% 
+  ungroup()
+
 
 # GAG Indicator: Hcp lower than before last win?
-
+races <- races %>% 
+  arrange(date_time) %>% 
+  group_by(dg_horseid) %>% 
+  mutate(
+    gagindicator = gag < lag(
+      replace_na(
+        na.locf(
+          ifelse(position == 1 & surface == "Turf", gag, NA), na.rm = FALSE
+        ), 
+        0
+      ),
+      default = 0
+    ),
+    gag_lastwin = lag(
+      replace_na(
+        na.locf(
+          ifelse(position == 1 & surface == "Turf", gag, NA), na.rm = FALSE
+        ), 
+        0
+      ),
+      default = 0
+    )
+  ) %>% 
+  ungroup()
+  
 
 
 saveRDS(races, "../data/processed/engineered_features.Rds")
