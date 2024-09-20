@@ -77,7 +77,7 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ```{r}
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", 
-  "hofirstrace", "hodays", "draweffect_mean", "hono", "blinkers1sttime", "weight",
+  "hofirstrace", "hodays", "draweffect_mean", "gag", "blinkers1sttime", "weight",
   "josr365", "jowins365", 
   "trsr",
   "odds"
