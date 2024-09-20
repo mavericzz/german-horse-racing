@@ -77,8 +77,8 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ```{r}
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", 
-  "hofirstrace", "hodays", "draweffect_mean", "gag", "blinkers1sttime", "weight",
-  "josr365", "jowins365", 
+  "hofirstrace", "hodays", "draweffect_median", "gag", "blinkers1sttime", "weight",
+  "josr365", "jowins365", "gagindicator", 
   "trsr",
   "odds"
 )
@@ -217,6 +217,9 @@ predictions <- predictions %>%
 sum(predictions$earnings)
 ```
 
+```{r}
+
+```
 
 
 
