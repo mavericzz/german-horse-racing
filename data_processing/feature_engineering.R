@@ -213,6 +213,7 @@ races <- races %>%
     draweffect, by = c("dg_course", "race_distance", "hodraw")
   )
 
+# GAG Indicator: Hcp lower than before last win?
 
 
 
