@@ -47,14 +47,18 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 * **`hosr730`**: Horse's strike rate in the last 2 years
 * **`hosr`**: Horse's career strike rate
 * **`homean4sprat`**: Horse's mean speed rating in the last 4 races
-* **`homeanearn365`**: Horse's mean earnings in the last 365 days
+* **`homeanearn365`**: Horse's mean earnings per race in the last 365 days
 * **`holastsprat`**: Horse's last speed rating
 * **`hofirstrace`**: Indicator if it's the horse's first race
 * **`hodays`**: Number of days since the horse's last race
-* **`hostall`**: Horse's stall number
-* **`hono`**: Horse's number in the race card
+* **`draweffect_median`**: The median estimated disadvantage (in terms of lengths) associated with the horse's starting stall compared to the innermost stall
+* **`gag`**: Horse's handicap rating before the race
+* **`gagindicator`**: Takes the value 1 if the horse's current handicap rating is lower than its rating at the time of its most recent win, 0 otherwise
 * **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for the first time
 * **`weight`**: Weight carried by the horse
+
+* **`hostall`**: Horse's stall number
+* **`hono`**: Horse's number in the race card
 
 
 ### Jockey-related features
@@ -77,8 +81,8 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ```{r}
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
-  "hofirstrace", "hodays", "draweffect_median", "gag", "blinkers1sttime", "weight",
-  "josr365", "jowins365", "gagindicator", 
+  "hofirstrace", "hodays", "draweffect_median", "gag", "gagindicator", 
+  "blinkers1sttime", "weight", "josr365", "jowins365", 
   "trsr",
   "odds"
 )
@@ -89,9 +93,6 @@ features <- c(
 ## 3.2 Filtering the Data
 
 Some jump races are also part of the dataset. But only flat races run on turf will be used. Stakes races won't be analysed. The focus will lie instead on Handicap races and in particular "Ausgleich IV" races which are the lowest class of racing Germany. Those races are run very frequently with many observations per horse in a year. 
-
-
-DEAD HEATS!!
 
 
 ```{r}
