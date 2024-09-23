@@ -5,6 +5,7 @@ data/processed/engineered_features.Rds
 data/processed/prepared_raceday_data.Rds
 data_acquisition/raceday_onerace.py
 data_processing/raceday_preparation.R
+scripts/betting_assistant.R
 .Rhistory
 im_german_racing_data.RData
 cleaned_german_racing_data.RData
