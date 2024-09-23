@@ -76,7 +76,7 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 
 ```{r}
 features <- c(
-  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", 
+  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
   "hofirstrace", "hodays", "draweffect_median", "gag", "blinkers1sttime", "weight",
   "josr365", "jowins365", "gagindicator", 
   "trsr",
@@ -101,7 +101,29 @@ data <- races %>%
     date_time > "2019-01-01 01:00:00",
     race_type == "flat",
     surface == "Turf"
+  ) 
+```
+
+Filter out races with dead heats:
+```{r}
+dead_heat_races <- data %>% 
+  group_by(dg_raceid, position) %>%
+  filter(position == 1) %>% 
+  summarise(
+    position1_count = n()
   ) %>% 
+  filter(position1_count > 1) %>% 
+  pull(dg_raceid)
+
+data <- data %>% 
+  filter(!dg_raceid %in% dead_heat_races)
+```
+
+
+
+Selecting the needed columns:
+```{r}
+data <- data %>% 
   select(
     all_of(
       c(
@@ -116,7 +138,12 @@ data <- races %>%
   mutate(
     hodays = ifelse(hofirstrace == 1, 0, hodays)
   )
+```
 
+
+
+
+```{r}
 # homean4sprat missing (different reasons) exclude those races
 races_missing_data <- data %>% 
   filter(is.na(homean4sprat)) %>% 
@@ -136,7 +163,6 @@ data <- data %>%
   arrange(date_time) %>% 
   mutate(holastsprat = na.locf(holastsprat))
 ```
-
 
 
 # Train Data
@@ -206,7 +232,7 @@ predictions <- predictions %>%
   filter(
     expected_value > 0,
     expected_value == max(expected_value)
-  ) %>% 
+  )  %>% 
   ungroup() %>% 
   mutate(
     earnings = ifelse(
