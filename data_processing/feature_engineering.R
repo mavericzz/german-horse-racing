@@ -94,7 +94,9 @@ races <- races %>%
       units = "days"
     ),
     # first time blinkers
-    blinkers1sttime = as.integer(cumsum(blinkers == 1) == 1)
+    blinkers1sttime = as.integer(cumsum(blinkers == 1) == 1),
+    # Handling NAs
+    holastsprat = na.locf(holastsprat)
   ) %>% 
   ungroup()
 
