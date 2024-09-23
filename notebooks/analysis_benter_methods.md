@@ -84,9 +84,9 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 
 ``` r
 features <- c(
-  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat", 
-  "hofirstrace", "hodays", "draweffect_mean", "hono", "blinkers1sttime", "weight",
-  "josr365", "jowins365", 
+  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
+  "hofirstrace", "hodays", "draweffect_median", "gag", "blinkers1sttime", "weight",
+  "josr365", "jowins365", "gagindicator", 
   "trsr",
   "odds"
 )
@@ -109,7 +109,34 @@ data <- races %>%
     date_time > "2019-01-01 01:00:00",
     race_type == "flat",
     surface == "Turf"
+  ) 
+```
+
+Filter out races with dead heats:
+
+``` r
+dead_heat_races <- data %>% 
+  group_by(dg_raceid, position) %>%
+  filter(position == 1) %>% 
+  summarise(
+    position1_count = n()
   ) %>% 
+  filter(position1_count > 1) %>% 
+  pull(dg_raceid)
+```
+
+    ## `summarise()` has grouped output by 'dg_raceid'. You can override using the
+    ## `.groups` argument.
+
+``` r
+data <- data %>% 
+  filter(!dg_raceid %in% dead_heat_races)
+```
+
+Selecting the needed columns:
+
+``` r
+data <- data %>% 
   select(
     all_of(
       c(
@@ -124,7 +151,9 @@ data <- races %>%
   mutate(
     hodays = ifelse(hofirstrace == 1, 0, hodays)
   )
+```
 
+``` r
 # homean4sprat missing (different reasons) exclude those races
 races_missing_data <- data %>% 
   filter(is.na(homean4sprat)) %>% 
@@ -169,8 +198,9 @@ print(model_formula)
 ```
 
     ## win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + 
-    ##     hofirstrace + hodays + draweffect_mean + hono + blinkers1sttime + 
-    ##     weight + josr365 + jowins365 + trsr + odds + strata(dg_raceid)
+    ##     hofirstrace + hodays + draweffect_median + gag + blinkers1sttime + 
+    ##     weight + josr365 + jowins365 + gagindicator + trsr + odds + 
+    ##     strata(dg_raceid)
 
 ``` r
 model <- clogit(
@@ -181,63 +211,66 @@ summary(model)
 ```
 
     ## Call:
-    ## coxph(formula = Surv(rep(1, 5699L), win) ~ hosr730 + hosr + homean4sprat + 
-    ##     homeanearn365 + holastsprat + hofirstrace + hodays + draweffect_mean + 
-    ##     hono + blinkers1sttime + weight + josr365 + jowins365 + trsr + 
-    ##     odds + strata(dg_raceid), data = train_data, method = "exact")
+    ## coxph(formula = Surv(rep(1, 5690L), win) ~ hosr730 + hosr + homean4sprat + 
+    ##     homeanearn365 + holastsprat + hofirstrace + hodays + draweffect_median + 
+    ##     gag + blinkers1sttime + weight + josr365 + jowins365 + gagindicator + 
+    ##     trsr + odds + strata(dg_raceid), data = train_data, method = "exact")
     ## 
-    ##   n= 5639, number of events= 526 
+    ##   n= 5630, number of events= 524 
     ##    (60 observations deleted due to missingness)
     ## 
-    ##                       coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## hosr730         -2.490e+00  8.292e-02  1.518e+00  -1.640 0.100983    
-    ## hosr             1.397e+00  4.043e+00  1.561e+00   0.895 0.370922    
-    ## homean4sprat     5.184e-03  1.005e+00  4.736e-03   1.095 0.273627    
-    ## homeanearn365    1.508e-04  1.000e+00  2.078e-04   0.726 0.467869    
-    ## holastsprat      4.339e-03  1.004e+00  3.208e-03   1.353 0.176188    
-    ## hofirstrace      3.738e-01  1.453e+00  5.379e-01   0.695 0.487029    
-    ## hodays          -8.829e-05  9.999e-01  7.996e-04  -0.110 0.912080    
-    ## draweffect_mean  3.952e-03  1.004e+00  1.604e-02   0.246 0.805400    
-    ## hono             3.397e-02  1.035e+00  2.721e-02   1.248 0.211904    
-    ## blinkers1sttime -3.168e-01  7.285e-01  1.802e-01  -1.758 0.078714 .  
-    ## weight           1.440e-02  1.015e+00  2.790e-02   0.516 0.605691    
-    ## josr365          6.573e-01  1.930e+00  6.756e-01   0.973 0.330584    
-    ## jowins365        2.272e-03  1.002e+00  1.902e-03   1.195 0.232259    
-    ## trsr             4.451e+00  8.572e+01  1.209e+00   3.681 0.000232 ***
-    ## odds            -8.734e-02  9.164e-01  8.489e-03 -10.289  < 2e-16 ***
+    ##                         coef  exp(coef)   se(coef)       z Pr(>|z|)    
+    ## hosr730           -2.596e+00  7.454e-02  1.582e+00  -1.641 0.100718    
+    ## hosr               1.583e+00  4.872e+00  1.658e+00   0.955 0.339523    
+    ## homean4sprat       5.090e-03  1.005e+00  4.741e-03   1.074 0.282981    
+    ## homeanearn365      1.133e-04  1.000e+00  2.109e-04   0.537 0.591289    
+    ## holastsprat        4.116e-03  1.004e+00  3.206e-03   1.284 0.199200    
+    ## hofirstrace        3.558e-01  1.427e+00  5.390e-01   0.660 0.509204    
+    ## hodays            -8.482e-05  9.999e-01  7.960e-04  -0.107 0.915139    
+    ## draweffect_median -1.193e-03  9.988e-01  1.915e-02  -0.062 0.950309    
+    ## gag               -1.276e-02  9.873e-01  3.147e-02  -0.405 0.685192    
+    ## blinkers1sttime   -3.155e-01  7.294e-01  1.802e-01  -1.751 0.079914 .  
+    ## weight            -2.134e-03  9.979e-01  3.403e-02  -0.063 0.950007    
+    ## josr365            6.969e-01  2.008e+00  6.772e-01   1.029 0.303427    
+    ## jowins365          2.390e-03  1.002e+00  1.940e-03   1.232 0.217918    
+    ## gagindicatorTRUE  -4.752e-02  9.536e-01  1.301e-01  -0.365 0.714850    
+    ## trsr               4.409e+00  8.220e+01  1.233e+00   3.577 0.000348 ***
+    ## odds              -8.753e-02  9.162e-01  8.507e-03 -10.289  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ##                 exp(coef) exp(-coef) lower .95 upper .95
-    ## hosr730           0.08292   12.06013  0.004231    1.6251
-    ## hosr              4.04336    0.24732  0.189522   86.2628
-    ## homean4sprat      1.00520    0.99483  0.995911    1.0146
-    ## homeanearn365     1.00015    0.99985  0.999744    1.0006
-    ## holastsprat       1.00435    0.99567  0.998053    1.0107
-    ## hofirstrace       1.45330    0.68809  0.506440    4.1704
-    ## hodays            0.99991    1.00009  0.998346    1.0015
-    ## draweffect_mean   1.00396    0.99606  0.972884    1.0360
-    ## hono              1.03456    0.96660  0.980821    1.0912
-    ## blinkers1sttime   0.72846    1.37275  0.511714    1.0370
-    ## weight            1.01451    0.98570  0.960515    1.0715
-    ## josr365           1.92960    0.51824  0.513333    7.2533
-    ## jowins365         1.00227    0.99773  0.998545    1.0060
-    ## trsr             85.72071    0.01167  8.013594  916.9468
-    ## odds              0.91636    1.09127  0.901243    0.9317
+    ##                   exp(coef) exp(-coef) lower .95 upper .95
+    ## hosr730             0.07454   13.41561  0.003357    1.6552
+    ## hosr                4.87168    0.20527  0.189018  125.5609
+    ## homean4sprat        1.00510    0.99492  0.995807    1.0145
+    ## homeanearn365       1.00011    0.99989  0.999700    1.0005
+    ## holastsprat         1.00412    0.99589  0.997835    1.0105
+    ## hofirstrace         1.42727    0.70064  0.496287    4.1047
+    ## hodays              0.99992    1.00008  0.998356    1.0015
+    ## draweffect_median   0.99881    1.00119  0.962012    1.0370
+    ## gag                 0.98732    1.01284  0.928257    1.0501
+    ## blinkers1sttime     0.72939    1.37100  0.512374    1.0383
+    ## weight              0.99787    1.00214  0.933482    1.0667
+    ## josr365             2.00753    0.49812  0.532397    7.5699
+    ## jowins365           1.00239    0.99761  0.998589    1.0062
+    ## gagindicatorTRUE    0.95359    1.04867  0.739015    1.2305
+    ## trsr               82.20434    0.01216  7.337936  920.9065
+    ## odds                0.91619    1.09147  0.901045    0.9316
     ## 
-    ## Concordance= 0.74  (se = 0.013 )
-    ## Likelihood ratio test= 345.2  on 15 df,   p=<2e-16
-    ## Wald test            = 195.8  on 15 df,   p=<2e-16
-    ## Score (logrank) test = 221.2  on 15 df,   p=<2e-16
+    ## Concordance= 0.739  (se = 0.013 )
+    ## Likelihood ratio test= 344.5  on 16 df,   p=<2e-16
+    ## Wald test            = 194.9  on 16 df,   p=<2e-16
+    ## Score (logrank) test = 220.7  on 16 df,   p=<2e-16
 
 ``` r
 coeffs <- as.vector(summary(model)$coefficients[, 1])
 coeffs
 ```
 
-    ##  [1] -2.489905e+00  1.397075e+00  5.184435e-03  1.508272e-04  4.339413e-03
-    ##  [6]  3.738334e-01 -8.828933e-05  3.952303e-03  3.397179e-02 -3.168166e-01
-    ## [11]  1.440484e-02  6.573119e-01  2.272273e-03  4.451094e+00 -8.734159e-02
+    ##  [1] -2.596419e+00  1.583439e+00  5.090279e-03  1.132638e-04  4.115498e-03
+    ##  [6]  3.557626e-01 -8.481837e-05 -1.193456e-03 -1.275907e-02 -3.155402e-01
+    ## [11] -2.133678e-03  6.969062e-01  2.390023e-03 -4.751851e-02  4.409208e+00
+    ## [16] -8.752676e-02
 
 # Test Data
 
@@ -270,7 +303,7 @@ predictions <- predictions %>%
   filter(
     expected_value > 0,
     expected_value == max(expected_value)
-  ) %>% 
+  )  %>% 
   ungroup() %>% 
   mutate(
     earnings = ifelse(
@@ -281,4 +314,4 @@ predictions <- predictions %>%
 sum(predictions$earnings)
 ```
 
-    ## [1] -28.5
+    ## [1] 28
