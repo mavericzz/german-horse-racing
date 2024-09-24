@@ -57,9 +57,6 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 * **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for the first time
 * **`weight`**: Weight carried by the horse
 
-* **`hostall`**: Horse's stall number
-* **`hono`**: Horse's number in the race card
-
 
 ### Jockey-related features
 
@@ -79,11 +76,20 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 
 
 ```{r}
+# Define a vector to store the names of features used in the model
 features <- c(
+  # Horse-related features
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
   "hofirstrace", "hodays", "draweffect_median", "gag", "gagindicator", 
-  "blinkers1sttime", "weight", "josr365", "jowins365", 
+  "blinkers1sttime", "weight",
+  
+  # Jockey-related features
+  "josr365", "jowins365", 
+  
+  # Trainer-related features
   "trsr",
+  
+  # Other features
   "odds"
 )
 ```
