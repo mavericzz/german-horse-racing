@@ -100,9 +100,6 @@ features <- c(
 
 This section prepares the data for model training and prediction. Jump races and stakes races are excluded as the focus is on flat races and specifically "Ausgleich IV" handicap races. "Ausgleich IV" races are the lowest class of racing in Germany and those races are run very frequently with many observations per horse in a year. Additionally, races before 2019 are removed due to a significantly different takeout rate at that time. The data is further filtered to ensure data integrity by removing races with missing odds, homean4sprat values, or stall numbers. Lastly, races with dead heats are excluded and the data is sorted by date and time.
 
-
-Chaining
-
 ```{r}
 # Finding races with dead heats
 dead_heat_races <- races %>% 
@@ -158,7 +155,6 @@ data <- races %>%
   # For each horse use last measured speed rating if last speedrating is missing
   mutate(holastsprat = na.locf(holastsprat, na.rm = FALSE)) %>% 
   ungroup()
-  
 ```
 
 
