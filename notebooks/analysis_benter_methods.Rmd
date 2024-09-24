@@ -96,23 +96,25 @@ features <- c(
 
 
 
-## 3.2 Filtering the Data
+## 3.2 Filtering and Preparing the Data
 
-Some jump races are also part of the dataset. But only flat races run on turf will be used. Stakes races won't be analysed. The focus will lie instead on Handicap races and in particular "Ausgleich IV" races which are the lowest class of racing Germany. Those races are run very frequently with many observations per horse in a year. 
+This section prepares the data for model training and prediction. Jump races and stakes races are excluded as the focus is on flat races and specifically "Ausgleich IV" handicap races. "Ausgleich IV" races are the lowest class of racing in Germany and those races are run very frequently with many observations per horse in a year. Additionally, races before 2019 are removed due to a significantly different takeout rate at that time. The data is further filtered to ensure data integrity by removing races with missing odds, homean4sprat values, or stall numbers. Lastly, races with dead heats are excluded and the data is sorted by date and time.
+
+
 
 
 ```{r}
 data <- races %>% 
+  # Filter races based on type, class, surface, and date
   filter(
-    race_class_old == "Ausgleich IV",
-    date_time > "2019-01-01 01:00:00",
     race_type == "flat",
-    surface == "Turf"
-  ) 
-```
+    race_class_old == "Ausgleich IV",
+    surface == "Turf",
+    date_time > "2019-01-01 01:00:00"
+  )
 
-Filter out races with dead heats:
-```{r}
+
+# Filter out races with dead heats
 dead_heat_races <- data %>% 
   group_by(dg_raceid, position) %>%
   filter(position == 1) %>% 
@@ -124,12 +126,8 @@ dead_heat_races <- data %>%
 
 data <- data %>% 
   filter(!dg_raceid %in% dead_heat_races)
-```
 
-
-
-Selecting the needed columns:
-```{r}
+# Select the necessary columns
 data <- data %>% 
   select(
     all_of(
@@ -138,7 +136,9 @@ data <- data %>%
         "dg_raceid", "date_time", "win", "dg_horseid", "horse", "hostall"
       )
     )
-  ) %>% 
+  ) %>%
+  
+  # Handle missing values and ensure data integrity
   filter(
     !is.na(odds)
   ) %>% 
@@ -146,6 +146,11 @@ data <- data %>%
     hodays = ifelse(hofirstrace == 1, 0, hodays)
   )
 ```
+
+
+
+
+
 
 
 
