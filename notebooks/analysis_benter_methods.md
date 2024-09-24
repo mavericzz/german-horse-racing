@@ -57,17 +57,38 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ### Horse-related features
 
 - **`hosr730`**: Horse’s strike rate in the last 2 years
+
 - **`hosr`**: Horse’s career strike rate
+
 - **`homean4sprat`**: Horse’s mean speed rating in the last 4 races
-- **`homeanearn365`**: Horse’s mean earnings in the last 365 days
+
+- **`homeanearn365`**: Horse’s mean earnings per race in the last 365
+  days
+
 - **`holastsprat`**: Horse’s last speed rating
+
 - **`hofirstrace`**: Indicator if it’s the horse’s first race
+
 - **`hodays`**: Number of days since the horse’s last race
-- **`hostall`**: Horse’s stall number
-- **`hono`**: Horse’s number in the race card
+
+- **`draweffect_median`**: The median estimated disadvantage (in terms
+  of lengths) associated with the horse’s starting stall compared to the
+  innermost stall
+
+- **`gag`**: Horse’s handicap rating before the race
+
+- **`gagindicator`**: Takes the value 1 if the horse’s current handicap
+  rating is lower than its rating at the time of its most recent win, 0
+  otherwise
+
 - **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for
   the first time
+
 - **`weight`**: Weight carried by the horse
+
+- **`hostall`**: Horse’s stall number
+
+- **`hono`**: Horse’s number in the race card
 
 ### Jockey-related features
 
@@ -85,8 +106,8 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ``` r
 features <- c(
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
-  "hofirstrace", "hodays", "draweffect_median", "gag", "blinkers1sttime", "weight",
-  "josr365", "jowins365", "gagindicator", 
+  "hofirstrace", "hodays", "draweffect_median", "gag", "gagindicator", 
+  "blinkers1sttime", "weight", "josr365", "jowins365", 
   "trsr",
   "odds"
 )
@@ -99,8 +120,6 @@ turf will be used. Stakes races won’t be analysed. The focus will lie
 instead on Handicap races and in particular “Ausgleich IV” races which
 are the lowest class of racing Germany. Those races are run very
 frequently with many observations per horse in a year.
-
-DEAD HEATS!!
 
 ``` r
 data <- races %>% 
@@ -198,8 +217,8 @@ print(model_formula)
 ```
 
     ## win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + 
-    ##     hofirstrace + hodays + draweffect_median + gag + blinkers1sttime + 
-    ##     weight + josr365 + jowins365 + gagindicator + trsr + odds + 
+    ##     hofirstrace + hodays + draweffect_median + gag + gagindicator + 
+    ##     blinkers1sttime + weight + josr365 + jowins365 + trsr + odds + 
     ##     strata(dg_raceid)
 
 ``` r
@@ -213,8 +232,9 @@ summary(model)
     ## Call:
     ## coxph(formula = Surv(rep(1, 5690L), win) ~ hosr730 + hosr + homean4sprat + 
     ##     homeanearn365 + holastsprat + hofirstrace + hodays + draweffect_median + 
-    ##     gag + blinkers1sttime + weight + josr365 + jowins365 + gagindicator + 
-    ##     trsr + odds + strata(dg_raceid), data = train_data, method = "exact")
+    ##     gag + gagindicator + blinkers1sttime + weight + josr365 + 
+    ##     jowins365 + trsr + odds + strata(dg_raceid), data = train_data, 
+    ##     method = "exact")
     ## 
     ##   n= 5630, number of events= 524 
     ##    (60 observations deleted due to missingness)
@@ -229,11 +249,11 @@ summary(model)
     ## hodays            -8.482e-05  9.999e-01  7.960e-04  -0.107 0.915139    
     ## draweffect_median -1.193e-03  9.988e-01  1.915e-02  -0.062 0.950309    
     ## gag               -1.276e-02  9.873e-01  3.147e-02  -0.405 0.685192    
+    ## gagindicatorTRUE  -4.752e-02  9.536e-01  1.301e-01  -0.365 0.714850    
     ## blinkers1sttime   -3.155e-01  7.294e-01  1.802e-01  -1.751 0.079914 .  
     ## weight            -2.134e-03  9.979e-01  3.403e-02  -0.063 0.950007    
     ## josr365            6.969e-01  2.008e+00  6.772e-01   1.029 0.303427    
     ## jowins365          2.390e-03  1.002e+00  1.940e-03   1.232 0.217918    
-    ## gagindicatorTRUE  -4.752e-02  9.536e-01  1.301e-01  -0.365 0.714850    
     ## trsr               4.409e+00  8.220e+01  1.233e+00   3.577 0.000348 ***
     ## odds              -8.753e-02  9.162e-01  8.507e-03 -10.289  < 2e-16 ***
     ## ---
@@ -249,11 +269,11 @@ summary(model)
     ## hodays              0.99992    1.00008  0.998356    1.0015
     ## draweffect_median   0.99881    1.00119  0.962012    1.0370
     ## gag                 0.98732    1.01284  0.928257    1.0501
+    ## gagindicatorTRUE    0.95359    1.04867  0.739015    1.2305
     ## blinkers1sttime     0.72939    1.37100  0.512374    1.0383
     ## weight              0.99787    1.00214  0.933482    1.0667
     ## josr365             2.00753    0.49812  0.532397    7.5699
     ## jowins365           1.00239    0.99761  0.998589    1.0062
-    ## gagindicatorTRUE    0.95359    1.04867  0.739015    1.2305
     ## trsr               82.20434    0.01216  7.337936  920.9065
     ## odds                0.91619    1.09147  0.901045    0.9316
     ## 
@@ -268,8 +288,8 @@ coeffs
 ```
 
     ##  [1] -2.596419e+00  1.583439e+00  5.090279e-03  1.132638e-04  4.115498e-03
-    ##  [6]  3.557626e-01 -8.481837e-05 -1.193456e-03 -1.275907e-02 -3.155402e-01
-    ## [11] -2.133678e-03  6.969062e-01  2.390023e-03 -4.751851e-02  4.409208e+00
+    ##  [6]  3.557626e-01 -8.481837e-05 -1.193456e-03 -1.275907e-02 -4.751851e-02
+    ## [11] -3.155402e-01 -2.133678e-03  6.969062e-01  2.390023e-03  4.409208e+00
     ## [16] -8.752676e-02
 
 # Test Data
