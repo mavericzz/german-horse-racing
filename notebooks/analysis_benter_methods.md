@@ -191,6 +191,7 @@ onwards. This split allows us to assess how well the model generalizes
 to new races and avoids overfitting to the training data.
 
 ``` r
+# Create training dataset using races before 2021
 train_data <- data %>% 
   filter(date_time < "2021-01-01 01:00:00")
 
@@ -199,7 +200,7 @@ test_data <- data %>%
   data.table()
 ```
 
-## 4.1 The Model
+## 4.1 Training the Model
 
 A conditional logistic regression model (`clogit`) is employed to
 predict the probability of a horse winning a race. This model is
@@ -211,6 +212,7 @@ two-step approach to incorporate the public estimate (the odds), here a
 one-step approach is utilized.
 
 ``` r
+# Construct the model formula using the selected features
 model_formula <- as.formula(
   paste(
     "win",
@@ -227,10 +229,13 @@ print(model_formula)
     ##     strata(dg_raceid)
 
 ``` r
+# Fit the conditional logistic regression model
 model <- clogit(
   model_formula,
   data = train_data, method = "exact"
 )
+
+# Print model summary
 summary(model)
 ```
 
@@ -288,6 +293,7 @@ summary(model)
     ## Score (logrank) test = 219.6  on 16 df,   p=<2e-16
 
 ``` r
+# Extract coefficients from the model summary
 coeffs <- as.vector(summary(model)$coefficients[, 1])
 coeffs
 ```
@@ -297,7 +303,7 @@ coeffs
     ## [11] -3.147303e-01 -2.240451e-03  6.924687e-01  2.360865e-03  4.397140e+00
     ## [16] -8.754985e-02
 
-# Test Data
+## 4.2 Testing the Model
 
 ``` r
 test_data <- data %>% 
