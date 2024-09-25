@@ -27,7 +27,7 @@ In parimutuel betting, the track retains a commission known as takeout. In Germa
 
 # 2 Bill Benter's Approach
 
-Inspired by Bolton and Chapman's (1986) paper, Bill Benter employed a conditional logistic regression model to predict horse racing outcomes in Hong Kong. His innovative approach incorporated the public's estimate, as reflected in betting odds, into his model. Following a similar path, we'll attempt to identify market inefficiencies within German horse racing. 
+Inspired by Bolton and Chapman's (1986) paper, Bill Benter employed a conditional logistic regression model to predict horse racing outcomes in Hong Kong.^[See Bolton, R.N., & Chapman, R.G.(1986). Searching for  positive returns at the track: A multinomial logistic regression model for handicapping horse races. Management Science, 32(8), pp. 1040-1060.] His innovative approach incorporated the public's estimate, as reflected in betting odds, into his model.^[See Benter, W. (1994). Computer-based horse race handicapping and wagering systems: A report. In: Efficiency of Racetrack Betting Markets, pp. 183-198] Following a similar path, we'll attempt to identify market inefficiencies within German horse racing. 
 
 
 # 3 Data
