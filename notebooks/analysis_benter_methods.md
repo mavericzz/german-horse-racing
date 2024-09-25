@@ -292,6 +292,9 @@ summary(model)
     ## Wald test            = 194.2  on 16 df,   p=<2e-16
     ## Score (logrank) test = 219.6  on 16 df,   p=<2e-16
 
+The estimated coefficients are extracted from the model summary for use
+in subsequent predictions on the test data.
+
 ``` r
 # Extract coefficients from the model summary
 coeffs <- as.vector(summary(model)$coefficients[, 1])
