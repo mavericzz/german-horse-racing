@@ -164,6 +164,7 @@ data <- races %>%
 The dataset is split into a training set and a test set to evaluate the model's performance on unseen data. The training set includes races before January 1, 2021, while the test set contains races from that date onwards. This split allows us to assess how well the model generalizes to new races and avoids overfitting to the training data.
 
 ```{r}
+# Create training dataset using races before 2021
 train_data <- data %>% 
   filter(date_time < "2021-01-01 01:00:00")
 
@@ -173,14 +174,14 @@ test_data <- data %>%
 ```
 
 
-## 4.1 The Model
+## 4.1 Training the Model
 
 A conditional logistic regression model (`clogit`) is employed to predict the probability of a horse winning a race. This model is wellsuited for analyzing data with multiple observations within groups (horses within races) and allows us to account for the inherent  dependencies within each race. This approach is consistent with Bill Benter's strategy in horse race prediction. But in contrast to Benter's two-step approach to incorporate the public estimate (the odds), here a one-step approach is utilized. 
 
 
 
 ```{r}
-
+# Construct the model formula using the selected features
 model_formula <- as.formula(
   paste(
     "win",
@@ -191,25 +192,28 @@ model_formula <- as.formula(
 print(model_formula)
 ```
 
-
-
 ```{r}
+# Fit the conditional logistic regression model
 model <- clogit(
   model_formula,
   data = train_data, method = "exact"
 )
+
+# Print model summary
 summary(model)
 ```
 
+The estimated coefficients are extracted from the model summary for use in subsequent predictions on the test data.
 
 ```{r}
+# Extract coefficients from the model summary
 coeffs <- as.vector(summary(model)$coefficients[, 1])
 coeffs
 ```
 
 
 
-# Test Data
+## 4.2 Testing the Model
 
 ```{r}
 test_data <- data %>% 
