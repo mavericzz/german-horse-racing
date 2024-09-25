@@ -201,10 +201,14 @@ test_data <- data %>%
 
 ## 4.1 The Model
 
-A conditional logistic regression model (`clogit`)
-
-- hosr + homean4sprat + homeanearn365 + holastsprat + josr365 +
-  jowins365 + weight + hostall + hono + hofirstrace
+A conditional logistic regression model (`clogit`) is employed to
+predict the probability of a horse winning a race. This model is
+wellsuited for analyzing data with multiple observations within groups
+(horses within races) and allows us to account for the inherent
+dependencies within each race. This approach is consistent with Bill
+Benter’s strategy in horse race prediction. But in contrast to Benter’s
+two-step approach to incorporate the public estimate (the odds), here a
+one-step approach is utilized.
 
 ``` r
 model_formula <- as.formula(
