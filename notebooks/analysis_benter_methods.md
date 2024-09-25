@@ -1,5 +1,17 @@
-Using Bill Benter’s Methods in German Horse Racing
+Predicting German Horse Race Outcomes using a Benter-Inspired Model
 ================
+
+## Introduction
+
+This notebook explores the application of quantitative methods, inspired
+by the legendary horse racing bettor Bill Benter, to the German horse
+racing market.
+
+Web-scraped data and a conditional logistic regression model will be
+leveraged to estimate the probability of each horse winning a race. The
+aim is to identify potential market inefficiencies and to assess the
+effectiveness of Benter’s approach in the context of German horse
+racing.
 
 ``` r
 library (data.table)
@@ -25,17 +37,17 @@ focus lies exclusively on parimutuel odds.
 ## 1.2 Takeout
 
 In parimutuel betting, the track retains a commission known as takeout.
-In Germany, the takeout for win and place markets is 15%. Our analysis
+In Germany, the takeout for win and place markets is 15%. This analysis
 will concentrate solely on the win market.
 
 # 2 Bill Benter’s Approach
 
-Inspired by Bolton and Chapman’s (1986) paper, Bill Benter employed a
-conditional logistic regression model to predict horse racing outcomes
-in Hong Kong.[^2] His innovative approach incorporated the public’s
-estimate, as reflected in betting odds, into his model.[^3] Following a
-similar path, we’ll attempt to identify market inefficiencies within
-German horse racing.
+Inspired by Bolton and Chapman’s (1986) seminal paper, Bill Benter
+employed a conditional logistic regression model to predict horse racing
+outcomes in Hong Kong.[^2] His innovative approach incorporated the
+public’s estimate, as reflected in betting odds, into his model.[^3]
+Following a similar path, we’ll attempt to identify market
+inefficiencies within German horse racing.
 
 # 3 Data
 
@@ -198,6 +210,7 @@ to new races and avoids overfitting to the training data.
 train_data <- data %>% 
   filter(date_time < "2021-01-01 01:00:00")
 
+# Create test dataset using races after 2021
 test_data <- data %>% 
   filter(date_time > "2021-01-01 01:00:00") %>% 
   data.table()
@@ -311,13 +324,11 @@ coeffs
 
 ## 4.2 Testing the Model
 
-``` r
-test_data <- data %>% 
-  filter(
-    date_time > "2021-01-01 01:00:00" 
-  ) %>% 
-  data.table()
-```
+The performance of the trained model on unseen data will be evaluated by
+generating predictions for races in the test set (races after January 1,
+2021). Based on these predictions expected values are calculated. A
+straightforward betting strategy is to bet on the horse with the highest
+positive expected value in a race.
 
 Predictions
 
