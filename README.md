@@ -1,5 +1,7 @@
 # german-horse-racing
 
+<meta name="robots" content="noindex">
+
 ## Description:
 This repository contains scripts and data related to German horse racing. It aims to provide tools to acquire and clean german flat racing results. Finally some of Bill Benter's methods - presented in his seminal 1994 paper [Computer Based Horse Race Handicapping and Wagering Systems](https://gwern.net/doc/statistics/decision/1994-benter.pdf) - will be employed to search for inefficiencies in the german betting market.
 
