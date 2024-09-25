@@ -10,14 +10,14 @@ library(zoo)
 
 # 1 Horse Racing in Germany
 
-## 1.1 Betting Market
-
 Germany features two primary types of horse racing: Harness racing and
 flat racing. Steeplechasing and hurdling have largely faded into
 history. This notebook will concentrate on flat racing.
 
+## 1.1 Betting Market
+
 Betting plays a crucial role in German horse racing, as a portion of the
-prize money is funded by the parimutuel betting operator’s profits.
+prize money is funded by the parimutuel betting operator’s profits.[^1]
 Betting in Germany occurs through two primary channels: bookmakers
 (fixed odds) and the totalizator (parimutuel). For this analysis, the
 focus lies exclusively on parimutuel odds.
@@ -32,20 +32,23 @@ will concentrate solely on the win market.
 
 Inspired by Bolton and Chapman’s (1986) paper, Bill Benter employed a
 conditional logistic regression model to predict horse racing outcomes
-in Hong Kong.[^1] His innovative approach incorporated the public’s
-estimate, as reflected in betting odds, into his model.[^2] Following a
+in Hong Kong.[^2] His innovative approach incorporated the public’s
+estimate, as reflected in betting odds, into his model.[^3] Following a
 similar path, we’ll attempt to identify market inefficiencies within
 German horse racing.
 
 # 3 Data
 
-The data used in this analysis has been acquired by web scraping. German
-horse racing results since 2002 up until 2024 have been gathered. But
-only the results since 2019 will be used in training and testing the
-model because before 2019 the takeout rate was much higher than 15%.
-Data before 2019 has however been used to construct the necessary
-features. Similar features to those mentioned by Bolton and Chapman
-(1986) have been engineered.
+This analysis utilizes German horse racing data collected via web
+scraping from the official website of Deutscher Galopp e.V. The dataset
+encompasses race results, race details, and betting odds spanning from
+2002 to the present. However, due to a significantly higher takeout rate
+before 2019, only races from 2019 onwards are included in model training
+and testing. Data prior to 2019 was leveraged for feature engineering,
+drawing inspiration from the work of Bolton and Chapman (1986). The web
+scraping process is detailed in the [data_acquisition
+folder](../data_acquisition/), while the feature engineering steps can
+be found in the [data_processing folder](../data_processing/).
 
 ``` r
 # Import data
@@ -350,10 +353,13 @@ sum(predictions$earnings)
 
     ## [1] 19.9
 
-[^1]: See Bolton, R.N., & Chapman, R.G.(1986). Searching for positive
+[^1]: For more information on parimutuel betting, see the [Wikipedia
+    article](https://en.wikipedia.org/wiki/Parimutuel_betting).
+
+[^2]: See Bolton, R.N., & Chapman, R.G.(1986). Searching for positive
     returns at the track: A multinomial logistic regression model for
     handicapping horse races. Management Science, 32(8), pp. 1040-1060.
 
-[^2]: See Benter, W. (1994). Computer-based horse race handicapping and
+[^3]: See Benter, W. (1994). Computer-based horse race handicapping and
     wagering systems: A report. In: Efficiency of Racetrack Betting
     Markets, pp. 183-198
