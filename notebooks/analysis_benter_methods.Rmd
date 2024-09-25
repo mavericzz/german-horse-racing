@@ -159,14 +159,23 @@ data <- races %>%
 
 
 
-# Train Data
+# 4 Training and Testing the Model
+
+The dataset is split into a training set and a test set to evaluate the model's performance on unseen data. The training set includes races before January 1, 2021, while the test set contains races from that date onwards. This split allows us to assess how well the model generalizes to new races and avoids overfitting to the training data.
 
 ```{r}
 train_data <- data %>% 
   filter(date_time < "2021-01-01 01:00:00")
+
+test_data <- data %>% 
+  filter(date_time > "2021-01-01 01:00:00") %>% 
+  data.table()
 ```
 
-Model
+
+## 4.1 The Model
+
+A conditional logistic regression model (`clogit`)
 
  + hosr + homean4sprat + homeanearn365 + holastsprat + josr365 + 
     jowins365 + weight + hostall + hono + hofirstrace
