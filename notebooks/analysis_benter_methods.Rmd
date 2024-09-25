@@ -159,9 +159,6 @@ data <- races %>%
 
 
 
-
-
-
 # Train Data
 
 ```{r}
