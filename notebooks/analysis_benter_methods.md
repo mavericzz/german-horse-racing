@@ -32,8 +32,8 @@ will concentrate solely on the win market.
 
 Inspired by Bolton and Chapman’s (1986) paper, Bill Benter employed a
 conditional logistic regression model to predict horse racing outcomes
-in Hong Kong. His innovative approach incorporated the public’s
-estimate, as reflected in betting odds, into his model. Following a
+in Hong Kong.[^1] His innovative approach incorporated the public’s
+estimate, as reflected in betting odds, into his model.[^2] Following a
 similar path, we’ll attempt to identify market inefficiencies within
 German horse racing.
 
@@ -349,3 +349,11 @@ sum(predictions$earnings)
 ```
 
     ## [1] 19.9
+
+[^1]: See Bolton, R.N., & Chapman, R.G.(1986). Searching for positive
+    returns at the track: A multinomial logistic regression model for
+    handicapping horse races. Management Science, 32(8), pp. 1040-1060.
+
+[^2]: See Benter, W. (1994). Computer-based horse race handicapping and
+    wagering systems: A report. In: Efficiency of Racetrack Betting
+    Markets, pp. 183-198
