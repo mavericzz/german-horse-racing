@@ -57,38 +57,23 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 ### Horse-related features
 
 - **`hosr730`**: Horse’s strike rate in the last 2 years
-
 - **`hosr`**: Horse’s career strike rate
-
 - **`homean4sprat`**: Horse’s mean speed rating in the last 4 races
-
 - **`homeanearn365`**: Horse’s mean earnings per race in the last 365
   days
-
 - **`holastsprat`**: Horse’s last speed rating
-
 - **`hofirstrace`**: Indicator if it’s the horse’s first race
-
 - **`hodays`**: Number of days since the horse’s last race
-
 - **`draweffect_median`**: The median estimated disadvantage (in terms
   of lengths) associated with the horse’s starting stall compared to the
   innermost stall
-
 - **`gag`**: Horse’s handicap rating before the race
-
 - **`gagindicator`**: Takes the value 1 if the horse’s current handicap
   rating is lower than its rating at the time of its most recent win, 0
   otherwise
-
 - **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for
   the first time
-
 - **`weight`**: Weight carried by the horse
-
-- **`hostall`**: Horse’s stall number
-
-- **`hono`**: Horse’s number in the race card
 
 ### Jockey-related features
 
@@ -104,58 +89,74 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 - **`odds`**: Betting odds for the horse
 
 ``` r
+# Define a vector to store the names of features used in the model
 features <- c(
+  # Horse-related features
   "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
   "hofirstrace", "hodays", "draweffect_median", "gag", "gagindicator", 
-  "blinkers1sttime", "weight", "josr365", "jowins365", 
+  "blinkers1sttime", "weight",
+  
+  # Jockey-related features
+  "josr365", "jowins365", 
+  
+  # Trainer-related features
   "trsr",
+  
+  # Other features
   "odds"
 )
 ```
 
-## 3.2 Filtering the Data
+## 3.2 Filtering and Preparing the Data
 
-Some jump races are also part of the dataset. But only flat races run on
-turf will be used. Stakes races won’t be analysed. The focus will lie
-instead on Handicap races and in particular “Ausgleich IV” races which
-are the lowest class of racing Germany. Those races are run very
-frequently with many observations per horse in a year.
-
-``` r
-data <- races %>% 
-  filter(
-    race_class_old == "Ausgleich IV",
-    date_time > "2019-01-01 01:00:00",
-    race_type == "flat",
-    surface == "Turf"
-  ) 
-```
-
-Filter out races with dead heats:
+This section prepares the data for model training and prediction. Jump
+races and stakes races are excluded as the focus is on flat races and
+specifically “Ausgleich IV” handicap races. “Ausgleich IV” races are the
+lowest class of racing in Germany and those races are run very
+frequently with many observations per horse in a year. Additionally,
+races before 2019 are removed due to a significantly different takeout
+rate at that time. The data is further filtered to ensure data integrity
+by removing races with missing odds, homean4sprat values, or stall
+numbers. Lastly, races with dead heats are excluded and the data is
+sorted by date and time.
 
 ``` r
-dead_heat_races <- data %>% 
+# Finding races with dead heats
+dead_heat_races <- races %>% 
   group_by(dg_raceid, position) %>%
   filter(position == 1) %>% 
   summarise(
     position1_count = n()
-  ) %>% 
+  ) %>%
+  ungroup() %>% 
   filter(position1_count > 1) %>% 
-  pull(dg_raceid)
+  pull(dg_raceid) 
 ```
 
     ## `summarise()` has grouped output by 'dg_raceid'. You can override using the
     ## `.groups` argument.
 
 ``` r
-data <- data %>% 
-  filter(!dg_raceid %in% dead_heat_races)
-```
+# Finding races where homean4sprat is missing
+homean4sprat_missing_races <- races %>% 
+  filter(is.na(homean4sprat)) %>% 
+  pull(dg_raceid)
 
-Selecting the needed columns:
+# Finding races where hostall is missing
+missing_stall_races <- races %>%  
+  filter(is.na(hostall)) %>% 
+  pull(dg_raceid)
 
-``` r
-data <- data %>% 
+
+data <- races %>% 
+  # Filter races based on type, class, surface, and date
+  filter(
+    race_type == "flat",
+    race_class_old == "Ausgleich IV",
+    surface == "Turf",
+    date_time > "2019-01-01 01:00:00"
+  ) %>% 
+  # Select the necessary columns
   select(
     all_of(
       c(
@@ -163,34 +164,22 @@ data <- data %>%
         "dg_raceid", "date_time", "win", "dg_horseid", "horse", "hostall"
       )
     )
-  ) %>% 
+  ) %>%
+  # Handle missing values and ensure data integrity
   filter(
+    !dg_raceid %in% dead_heat_races,
+    !dg_raceid %in% homean4sprat_missing_races,
+    !dg_raceid %in% missing_stall_races,
     !is.na(odds)
   ) %>% 
   mutate(
     hodays = ifelse(hofirstrace == 1, 0, hodays)
-  )
-```
-
-``` r
-# homean4sprat missing (different reasons) exclude those races
-races_missing_data <- data %>% 
-  filter(is.na(homean4sprat)) %>% 
-  pull(dg_raceid)
-
-data <- data %>% 
-  filter(! dg_raceid %in% races_missing_data)
-
-# find races where stall numbers are missing
-races_missing_stall <- data %>%  
-  filter(is.na(hostall)) %>% 
-  pull(dg_raceid)
-data <- data %>% 
-  filter(!dg_raceid %in% races_missing_stall)
-
-data <- data %>% 
+  ) %>% 
   arrange(date_time) %>% 
-  mutate(holastsprat = na.locf(holastsprat))
+  group_by(dg_horseid) %>% 
+  # For each horse use last measured speed rating if last speedrating is missing
+  mutate(holastsprat = na.locf(holastsprat, na.rm = FALSE)) %>% 
+  ungroup()
 ```
 
 # Train Data
@@ -236,61 +225,61 @@ summary(model)
     ##     jowins365 + trsr + odds + strata(dg_raceid), data = train_data, 
     ##     method = "exact")
     ## 
-    ##   n= 5630, number of events= 524 
-    ##    (60 observations deleted due to missingness)
+    ##   n= 5620, number of events= 524 
+    ##    (70 observations deleted due to missingness)
     ## 
     ##                         coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## hosr730           -2.596e+00  7.454e-02  1.582e+00  -1.641 0.100718    
-    ## hosr               1.583e+00  4.872e+00  1.658e+00   0.955 0.339523    
-    ## homean4sprat       5.090e-03  1.005e+00  4.741e-03   1.074 0.282981    
-    ## homeanearn365      1.133e-04  1.000e+00  2.109e-04   0.537 0.591289    
-    ## holastsprat        4.116e-03  1.004e+00  3.206e-03   1.284 0.199200    
-    ## hofirstrace        3.558e-01  1.427e+00  5.390e-01   0.660 0.509204    
-    ## hodays            -8.482e-05  9.999e-01  7.960e-04  -0.107 0.915139    
-    ## draweffect_median -1.193e-03  9.988e-01  1.915e-02  -0.062 0.950309    
-    ## gag               -1.276e-02  9.873e-01  3.147e-02  -0.405 0.685192    
-    ## gagindicatorTRUE  -4.752e-02  9.536e-01  1.301e-01  -0.365 0.714850    
-    ## blinkers1sttime   -3.155e-01  7.294e-01  1.802e-01  -1.751 0.079914 .  
-    ## weight            -2.134e-03  9.979e-01  3.403e-02  -0.063 0.950007    
-    ## josr365            6.969e-01  2.008e+00  6.772e-01   1.029 0.303427    
-    ## jowins365          2.390e-03  1.002e+00  1.940e-03   1.232 0.217918    
-    ## trsr               4.409e+00  8.220e+01  1.233e+00   3.577 0.000348 ***
-    ## odds              -8.753e-02  9.162e-01  8.507e-03 -10.289  < 2e-16 ***
+    ## hosr730           -2.590e+00  7.505e-02  1.583e+00  -1.636 0.101920    
+    ## hosr               1.576e+00  4.837e+00  1.659e+00   0.950 0.342039    
+    ## homean4sprat       5.266e-03  1.005e+00  4.757e-03   1.107 0.268363    
+    ## homeanearn365      1.094e-04  1.000e+00  2.112e-04   0.518 0.604296    
+    ## holastsprat        3.874e-03  1.004e+00  3.208e-03   1.208 0.227203    
+    ## hofirstrace        3.487e-01  1.417e+00  5.389e-01   0.647 0.517542    
+    ## hodays            -7.244e-05  9.999e-01  7.954e-04  -0.091 0.927436    
+    ## draweffect_median -1.204e-03  9.988e-01  1.914e-02  -0.063 0.949827    
+    ## gag               -1.217e-02  9.879e-01  3.147e-02  -0.387 0.698976    
+    ## gagindicatorTRUE  -4.994e-02  9.513e-01  1.301e-01  -0.384 0.701136    
+    ## blinkers1sttime   -3.147e-01  7.300e-01  1.802e-01  -1.747 0.080677 .  
+    ## weight            -2.240e-03  9.978e-01  3.401e-02  -0.066 0.947479    
+    ## josr365            6.925e-01  1.999e+00  6.773e-01   1.022 0.306568    
+    ## jowins365          2.361e-03  1.002e+00  1.940e-03   1.217 0.223682    
+    ## trsr               4.397e+00  8.122e+01  1.233e+00   3.565 0.000363 ***
+    ## odds              -8.755e-02  9.162e-01  8.512e-03 -10.285  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##                   exp(coef) exp(-coef) lower .95 upper .95
-    ## hosr730             0.07454   13.41561  0.003357    1.6552
-    ## hosr                4.87168    0.20527  0.189018  125.5609
-    ## homean4sprat        1.00510    0.99492  0.995807    1.0145
-    ## homeanearn365       1.00011    0.99989  0.999700    1.0005
-    ## holastsprat         1.00412    0.99589  0.997835    1.0105
-    ## hofirstrace         1.42727    0.70064  0.496287    4.1047
-    ## hodays              0.99992    1.00008  0.998356    1.0015
-    ## draweffect_median   0.99881    1.00119  0.962012    1.0370
-    ## gag                 0.98732    1.01284  0.928257    1.0501
-    ## gagindicatorTRUE    0.95359    1.04867  0.739015    1.2305
-    ## blinkers1sttime     0.72939    1.37100  0.512374    1.0383
-    ## weight              0.99787    1.00214  0.933482    1.0667
-    ## josr365             2.00753    0.49812  0.532397    7.5699
-    ## jowins365           1.00239    0.99761  0.998589    1.0062
-    ## trsr               82.20434    0.01216  7.337936  920.9065
-    ## odds                0.91619    1.09147  0.901045    0.9316
+    ## hosr730             0.07505   13.32363  0.003371    1.6712
+    ## hosr                4.83723    0.20673  0.187243  124.9648
+    ## homean4sprat        1.00528    0.99475  0.995950    1.0147
+    ## homeanearn365       1.00011    0.99989  0.999696    1.0005
+    ## holastsprat         1.00388    0.99613  0.997589    1.0102
+    ## hofirstrace         1.41727    0.70558  0.492897    4.0752
+    ## hodays              0.99993    1.00007  0.998370    1.0015
+    ## draweffect_median   0.99880    1.00121  0.962021    1.0370
+    ## gag                 0.98791    1.01224  0.928820    1.0508
+    ## gagindicatorTRUE    0.95129    1.05121  0.737136    1.2276
+    ## blinkers1sttime     0.72999    1.36989  0.512798    1.0392
+    ## weight              0.99776    1.00224  0.933418    1.0665
+    ## josr365             1.99864    0.50034  0.529965    7.5374
+    ## jowins365           1.00236    0.99764  0.998559    1.0062
+    ## trsr               81.21828    0.01231  7.242346  910.8112
+    ## odds                0.91617    1.09150  0.901015    0.9316
     ## 
-    ## Concordance= 0.739  (se = 0.013 )
-    ## Likelihood ratio test= 344.5  on 16 df,   p=<2e-16
-    ## Wald test            = 194.9  on 16 df,   p=<2e-16
-    ## Score (logrank) test = 220.7  on 16 df,   p=<2e-16
+    ## Concordance= 0.738  (se = 0.013 )
+    ## Likelihood ratio test= 343.2  on 16 df,   p=<2e-16
+    ## Wald test            = 194.2  on 16 df,   p=<2e-16
+    ## Score (logrank) test = 219.6  on 16 df,   p=<2e-16
 
 ``` r
 coeffs <- as.vector(summary(model)$coefficients[, 1])
 coeffs
 ```
 
-    ##  [1] -2.596419e+00  1.583439e+00  5.090279e-03  1.132638e-04  4.115498e-03
-    ##  [6]  3.557626e-01 -8.481837e-05 -1.193456e-03 -1.275907e-02 -4.751851e-02
-    ## [11] -3.155402e-01 -2.133678e-03  6.969062e-01  2.390023e-03  4.409208e+00
-    ## [16] -8.752676e-02
+    ##  [1] -2.589539e+00  1.576343e+00  5.265532e-03  1.094228e-04  3.874319e-03
+    ##  [6]  3.487297e-01 -7.244215e-05 -1.204398e-03 -1.216803e-02 -4.994064e-02
+    ## [11] -3.147303e-01 -2.240451e-03  6.924687e-01  2.360865e-03  4.397140e+00
+    ## [16] -8.754985e-02
 
 # Test Data
 
@@ -334,4 +323,4 @@ predictions <- predictions %>%
 sum(predictions$earnings)
 ```
 
-    ## [1] 28
+    ## [1] 19.9
