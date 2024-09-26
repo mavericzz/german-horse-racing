@@ -10,10 +10,10 @@ The goal of this project is to develop a data-driven betting strategy for German
 
 The project involves the following key steps:
 
-1. **Data Acquisition:** Web scraping is used to collect historical race results, horse details, jockey and trainer statistics, and betting odds from the official website of Deutscher Galopp e.V. (See the `data_acquisition` folder for details)
-2. **Data Cleaning and Preprocessing:** The raw data is cleaned, transformed, and prepared for analysis. This includes handling missing values, filtering irrelevant races, and creating new features based on domain expertise and existing literature. (See the `data_cleaning` and `data_processing` folders)
+1. **Data Acquisition:** Web scraping is used to collect historical race results, horse details, jockey and trainer statistics, and betting odds from the official website of Deutscher Galopp e.V. (See the [`data_acquisition`](data_acquistion) folder for details)
+2. **Data Cleaning and Preprocessing:** The raw data is cleaned, transformed, and prepared for analysis. This also includes creating features based on domain expertise and existing literature, and handling missing values. (See the [`data_cleaning`](data_cleaning) and [`data_processing`](data_processing) folders)
 3. **Model Building:**  A conditional logistic regression model is trained on the processed data to predict the probability of each horse winning a race.  
-4. **Model Evaluation & Betting Strategy:** The model's performance is evaluated on unseen data, and a simple betting strategy is implemented based on the model's predictions. The strategy's profitability is assessed through backtesting and statistical analysis.  (See the `notebooks` folder for the main analysis)
+4. **Model Evaluation & Betting Strategy:** The model's performance is evaluated on unseen data, and a simple betting strategy is implemented based on the model's predictions. The strategy's profitability is assessed through backtesting and statistical analysis.  (See the [`notebooks`](notebooks) folder for steps 3 and 4)
 
 ## Key Features
 
@@ -27,12 +27,12 @@ The model incorporates a variety of features related to horses, jockeys, trainer
 
 ## Repository Structure
 
-* `data`: Contains the raw and processed datasets used in the analysis.
+* `data`: Contains the raw, processed, and additional datasets used in the analysis.
 * `data_acquisition`:  Includes scripts for web scraping the horse racing data.
-* `data_cleaning`: Contains scripts for cleaning and preprocessing the raw data. 
-* `data_processing`: Includes scripts for feature engineering and data transformation.
+* `data_cleaning`: Contains scripts for cleaning the raw data. 
+* `data_processing`: Includes scripts for preprocessing the data, feature engineering, and data transformation.
 * `documentation`: May contain additional documentation or reports related to the project.
-* `notebooks`: Houses the main analysis notebook `Predicting German Horse Race Outcomes using a Benter-Inspired Model.Rmd`.
+* `notebooks`: Houses the main analysis notebook [`Predicting German Horse Race Outcomes using a Benter-Inspired Model`](notebooks/analysis_benter_methods.md).
 
 ## How to Use
 
@@ -41,32 +41,4 @@ The model incorporates a variety of features related to horses, jockeys, trainer
 3. Open and run the `Predicting German Horse Race Outcomes using a Benter-Inspired Model.Rmd` notebook to reproduce the analysis and explore the results.
 
 
-## Description:
-This repository contains scripts and data related to German horse racing. It aims to provide tools to acquire and clean german flat racing results. Finally some of Bill Benter's methods - presented in his seminal 1994 paper [Computer Based Horse Race Handicapping and Wagering Systems](https://gwern.net/doc/statistics/decision/1994-benter.pdf) - will be employed to search for inefficiencies in the german betting market.
-
-## Getting Started:
-Before using this repository, you'll need to have Python and R installed on your system. Additionally, specific libraries might be required depending on the scripts you intend to use.
-Clone the Repository:
-
-```
-git clone https://github.com/chris-alex-p/german-horse-racing.git
-```
-
-## Data Acquisition:
-The `data_acquisition` directory contains scripts to acquire german horse racing results.
-
-## Data:
-The `data` directory contains raw and processed data related to German horse racing.
-
-## Data Processing:
-The `data_processing` contains a script which preprocesses and combines german horse racing data.
-
-## Data Cleaning:
-
-
-* Data Collection
-* Data Cleaning
-* Data Analysis
-* The Model
-* Results
 
