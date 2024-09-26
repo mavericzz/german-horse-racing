@@ -322,13 +322,17 @@ generating predictions for races in the test set (races after January 1,
 straightforward betting strategy is to bet on the horse with the highest
 positive expected value in a race.
 
-Predictions
+First, the trained model is applied to the test data to generate
+predictions.
 
 ``` r
 predictions <- test_data[
   , prediction := as.matrix(test_data[, ..features]) %*% coeffs
 ]
 ```
+
+Races in which predictions for some or all of the horses are missing
+will be excluded.
 
 ``` r
 predictions_missing_races <- predictions %>% 
@@ -339,7 +343,14 @@ predictions <- predictions %>%
   filter(!dg_raceid %in% predictions_missing_races)
 ```
 
-Bets
+### Identifying Bets
+
+Next, the expected value for each horse based on the model’s predicted
+probabilities and the actual betting odds is calculated. The expected
+value represents the average profit or loss one can anticipate from a
+bet on that horse. The predictions are filtered to identify the horse
+with the highest positive expected value in each race, as laid out with
+the straightforward betting strategy described above.
 
 ``` r
 bets <- predictions %>% 
@@ -368,7 +379,14 @@ sum(bets$earnings)
 
     ## [1] 19.9
 
+Our strategy identified 919 potentially profitable bets and generated
+cumulative earnings of €19.90
+
 ## 4.3 Outperforming the Market vs. a few lucky Wins
+
+The cumulative earnings over the number of bets are plotted to assess
+the overall profitability and the pattern of wins and losses over the
+test period.
 
 ``` r
 # Calculate expected earnings for each bet (assuming 1 unit bet and 15% takeout)
@@ -385,6 +403,10 @@ ggplot(bets, aes(x = 1:nrow(bets))) +
 ```
 
 ![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+By conducting a bootstrap hypothesis test it is assessed if the observed
+earnings are significantly different from what one would expect due to
+chance.
 
 ``` r
 # Set a seed for reproducibility 
@@ -427,6 +449,35 @@ cat(
     ## Observed Earnings: 19.9 
     ##  Expected Loss (with 15% takeout): 137.85 
     ##  p-value: 0.0363
+
+The bootstrap hypothesis test yields a p-value of 0.0363. This p-value
+is less than the commonly used significance level of 0.05.
+
+The low p-value (0.0363) indicates that the observed earnings of €19.90
+are statistically significantly higher than what one would expect if the
+betting strategy’s performance were purely due to chance, considering
+the 15% takeout.
+
+The bootstrap hypothesis test provides strong evidence that the observed
+earnings are not merely due to chance.
+
+``` r
+# Create a histogram of the bootstrapped earnings
+ggplot(data.frame(earnings = boot_earnings), aes(x = earnings)) + 
+  geom_histogram(binwidth = 5, fill = "lightblue", color = "black") +  
+  # Add a vertical line for observed earnings
+  geom_vline(xintercept = observed_earnings, color = "red", linetype = "dashed") +
+  # Add a vertical line for expected loss
+  geom_vline(xintercept = -expected_loss, color = "blue", linetype = "dashed") +  
+  labs(
+    title = "Bootstrap Distribution of Earnings",
+    x = "Earnings",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+```
+
+![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 # 5 Conclusion
 
