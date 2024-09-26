@@ -69,8 +69,8 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 
 ## 3.1 Feature Descriptions
 
-The features for the subsequent model have mostly been selected based on
-existing literature, common sense, and subject matter knowledge.
+The features used in the model were primarily selected based on existing
+literature, common sense, and domain expertise in horse racing.
 
 ### Horse-related features
 
