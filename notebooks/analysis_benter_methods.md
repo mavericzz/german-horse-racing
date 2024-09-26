@@ -69,6 +69,9 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 
 ## 3.1 Feature Descriptions
 
+The features for the subsequent model have mostly been selected based on
+existing literature, common sense, and subject matter knowledge.
+
 ### Horse-related features
 
 - **`hosr730`**: Horse’s strike rate in the last 2 years
@@ -309,13 +312,7 @@ in subsequent predictions on the test data.
 ``` r
 # Extract coefficients from the model summary
 coeffs <- as.vector(summary(model)$coefficients[, 1])
-coeffs
 ```
-
-    ##  [1] -2.589539e+00  1.576343e+00  5.265532e-03  1.094228e-04  3.874319e-03
-    ##  [6]  3.487297e-01 -7.244215e-05 -1.204398e-03 -1.216803e-02 -4.994064e-02
-    ## [11] -3.147303e-01 -2.240451e-03  6.924687e-01  2.360865e-03  4.397140e+00
-    ## [16] -8.754985e-02
 
 ## 4.2 Testing the Model
 
@@ -328,7 +325,9 @@ positive expected value in a race.
 Predictions
 
 ``` r
-predictions <- test_data[, prediction := as.matrix(test_data[, ..features]) %*% coeffs]
+predictions <- test_data[
+  , prediction := as.matrix(test_data[, ..features]) %*% coeffs
+]
 ```
 
 ``` r
