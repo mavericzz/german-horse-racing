@@ -10,7 +10,7 @@ This notebook explores the application of quantitative methods, inspired by the 
 Web-scraped data and a conditional logistic regression model will be leveraged to estimate the probability of each horse winning a race. The aim is to identify potential market inefficiencies and to assess the effectiveness of Benter's approach in the context of German horse racing.
 
 ```{r, message=FALSE, warning=FALSE}
-library (data.table)
+library(data.table)
 library(survival)
 library(tidyverse)
 library(zoo)
