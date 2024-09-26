@@ -429,6 +429,27 @@ cat(
     ##  Expected Loss (with 15% takeout): 137.85 
     ##  p-value: 0.0363
 
+# 5 Conclusion
+
+The trained model demonstrated statistically significant predictive
+power, as evidenced by the bootstrap hypothesis test. The cumulative
+earnings plot further suggests that the betting strategy based on the
+model’s predictions has the potential to generate profits beyond what
+would be expected by chance, given the takeout rate.
+
+However, it’s important to acknowledge the limitations of this analysis.
+The model was trained and tested on a specific subset of races
+(“Ausgleich IV” handicap races on turf), and its performance might not
+generalize to other types of races or different market conditions.
+Moreover, the betting market is dynamic and subject to fluctuations, so
+continued monitoring and adaptation of the strategy would be necessary
+for sustained success.
+
+One other big problem in employing such a betting strategy is connected
+to the way how parimutuel betting markets work. If you place a
+significant bet on a horse in the win market the odds of that horse are
+going to drop, potentially making your advantage disappear.
+
 [^1]: For more information on parimutuel betting, see the [Wikipedia
     article](https://en.wikipedia.org/wiki/Parimutuel_betting).
 
