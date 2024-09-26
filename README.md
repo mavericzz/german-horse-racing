@@ -37,8 +37,8 @@ The model incorporates a variety of features related to horses, jockeys, trainer
 ## How to Use
 
 1. Clone the repository to your local machine.
-2. Ensure you have the required R packages installed (see the notebook for details).
-3. Open and run the `Predicting German Horse Race Outcomes using a Benter-Inspired Model.Rmd` notebook to reproduce the analysis and explore the results.
+2. Ensure you have the required R and python packages installed (see the scripts and notebooks for details).
+3. Open and run the [`Predicting German Horse Race Outcomes using a Benter-Inspired Model`](notebooks/analysis_benter_methods.md) notebook to reproduce the analysis and explore the results.
 
 
 
