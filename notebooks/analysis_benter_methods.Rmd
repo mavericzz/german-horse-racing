@@ -51,6 +51,8 @@ races <- readRDS("../data/processed/engineered_features.Rds")
 
 ## 3.1 Feature Descriptions
 
+The features used in the model were primarily selected based on existing literature, common sense, and domain expertise in horse racing.
+
 ### Horse-related features
 
 * **`hosr730`**: Horse's strike rate in the last 2 years
@@ -218,7 +220,6 @@ The estimated coefficients are extracted from the model summary for use in subse
 ```{r}
 # Extract coefficients from the model summary
 coeffs <- as.vector(summary(model)$coefficients[, 1])
-coeffs
 ```
 
 
@@ -230,7 +231,9 @@ The performance of the trained model on unseen data will be evaluated by generat
 
 Predictions
 ```{r, warning=FALSE}
-predictions <- test_data[, prediction := as.matrix(test_data[, ..features]) %*% coeffs]
+predictions <- test_data[
+  , prediction := as.matrix(test_data[, ..features]) %*% coeffs
+]
 ```
 
 ```{r}
