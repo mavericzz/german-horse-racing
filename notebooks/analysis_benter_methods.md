@@ -340,7 +340,18 @@ predictions <- test_data[, prediction := as.matrix(test_data[, ..features]) %*% 
     ## the '..features' variable in calling scope for clarity.
 
 ``` r
+predictions_missing_races <- predictions %>% 
+  filter(is.na(prediction)) %>% 
+  pull(dg_raceid)
+
 predictions <- predictions %>% 
+  filter(!dg_raceid %in% predictions_missing_races)
+```
+
+Bets
+
+``` r
+bets <- predictions %>% 
   group_by(dg_raceid) %>% 
   mutate(
     exp_prediction = exp(prediction),
@@ -353,16 +364,101 @@ predictions <- predictions %>%
     expected_value == max(expected_value)
   )  %>% 
   ungroup() %>% 
+  arrange(date_time) %>% 
   mutate(
     earnings = ifelse(
       win == 1, odds - 1, -1
-    )
+    ),
+    cumulative_earnings = cumsum(earnings)
   )
 
-sum(predictions$earnings)
+sum(bets$earnings)
 ```
 
     ## [1] 19.9
+
+``` r
+ggplot(
+  bets, aes(x = 1:nrow(bets), y = cumulative_earnings)
+) +
+  geom_path() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    x = "Number of Bets",
+    y = "Cumulative Earnings"
+  ) +
+  ggtitle(
+    "Cumulative Earnings over number of Bets"
+  )
+```
+
+![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+``` r
+# Set a seed for reproducibility (optional but recommended)
+set.seed(123) 
+
+# Number of bootstrap replicates
+n_bootstraps <- 10000  # Adjust this based on your computational resources
+
+# Function to calculate total earnings from a bootstrap sample
+calculate_earnings <- function(data, indices) {
+  resampled_data <- data[indices, ]
+  sum(resampled_data$earnings)
+}
+
+# Calculate observed total earnings 
+observed_earnings <- sum(bets$earnings) 
+
+# Calculate the expected loss due to takeout 
+total_bet_amount <- nrow(bets) 
+takeout_rate <- 0.15
+expected_loss <- total_bet_amount * takeout_rate
+
+# Perform bootstrapping for actual earnings
+boot_results_earnings <- boot::boot(data = bets, statistic = calculate_earnings, R = n_bootstraps)
+
+# Extract the bootstrap distribution of earnings
+boot_earnings <- boot_results_earnings$t
+
+# Calculate the p-value (one-sided test)
+p_value <- mean(boot_earnings <= -expected_loss)  # Compare to expected LOSS
+
+# Print the results
+cat("Observed Earnings:", observed_earnings, "\n")
+```
+
+    ## Observed Earnings: 19.9
+
+``` r
+cat("Expected Loss (with 15% takeout):", expected_loss, "\n")
+```
+
+    ## Expected Loss (with 15% takeout): 137.85
+
+``` r
+cat("P-value:", p_value, "\n")
+```
+
+    ## P-value: 0.0363
+
+``` r
+# Assuming your 'bets' dataframe has columns 'cumulative_earnings' and an index or column representing the bet number
+
+# Calculate expected earnings for each bet (assuming 1 unit bet and 15% takeout)
+expected_earnings <- -0.15 * 1:nrow(bets) 
+
+# Create the plot
+ggplot(bets, aes(x = 1:nrow(bets))) +  # Assuming you have an index or a column for bet number
+  geom_line(aes(y = cumulative_earnings)) + 
+  geom_line(aes(y = expected_earnings), color = "red", linetype = "dashed") +  # Add expected earnings line
+  labs(title = "Cumulative Earnings over Number of Bets",
+       x = "Number of Bets",
+       y = "Cumulative Earnings") +
+  theme_minimal() 
+```
+
+![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 [^1]: For more information on parimutuel betting, see the [Wikipedia
     article](https://en.wikipedia.org/wiki/Parimutuel_betting).
