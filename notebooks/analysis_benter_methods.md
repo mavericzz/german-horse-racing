@@ -141,17 +141,12 @@ dead_heat_races <- races %>%
   group_by(dg_raceid, position) %>%
   filter(position == 1) %>% 
   summarise(
-    position1_count = n()
+    position1_count = n(),
+    .groups = "drop"
   ) %>%
-  ungroup() %>% 
   filter(position1_count > 1) %>% 
   pull(dg_raceid) 
-```
 
-    ## `summarise()` has grouped output by 'dg_raceid'. You can override using the
-    ## `.groups` argument.
-
-``` r
 # Finding races where homean4sprat is missing
 homean4sprat_missing_races <- races %>% 
   filter(is.na(homean4sprat)) %>% 
@@ -336,9 +331,6 @@ Predictions
 predictions <- test_data[, prediction := as.matrix(test_data[, ..features]) %*% coeffs]
 ```
 
-    ## Warning: Both 'features' and '..features' exist in calling scope. Please remove
-    ## the '..features' variable in calling scope for clarity.
-
 ``` r
 predictions_missing_races <- predictions %>% 
   filter(is.na(prediction)) %>% 
@@ -377,29 +369,30 @@ sum(bets$earnings)
 
     ## [1] 19.9
 
+## 4.3 Outperforming the Market vs. a few lucky Wins
+
 ``` r
-ggplot(
-  bets, aes(x = 1:nrow(bets), y = cumulative_earnings)
-) +
-  geom_path() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(
-    x = "Number of Bets",
-    y = "Cumulative Earnings"
-  ) +
-  ggtitle(
-    "Cumulative Earnings over number of Bets"
-  )
+# Calculate expected earnings for each bet (assuming 1 unit bet and 15% takeout)
+expected_earnings <- -0.15 * 1:nrow(bets) 
+
+# Create the plot
+ggplot(bets, aes(x = 1:nrow(bets))) +  
+  geom_line(aes(y = cumulative_earnings)) + 
+  geom_line(aes(y = expected_earnings), color = "red", linetype = "dashed") + 
+  labs(title = "Cumulative Earnings over Number of Bets",
+       x = "Number of Bets",
+       y = "Cumulative Earnings") +
+  theme_minimal() 
 ```
 
 ![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ``` r
-# Set a seed for reproducibility (optional but recommended)
+# Set a seed for reproducibility 
 set.seed(123) 
 
 # Number of bootstrap replicates
-n_bootstraps <- 10000  # Adjust this based on your computational resources
+n_bootstraps <- 10000  
 
 # Function to calculate total earnings from a bootstrap sample
 calculate_earnings <- function(data, indices) {
@@ -422,43 +415,19 @@ boot_results_earnings <- boot::boot(data = bets, statistic = calculate_earnings,
 boot_earnings <- boot_results_earnings$t
 
 # Calculate the p-value (one-sided test)
-p_value <- mean(boot_earnings <= -expected_loss)  # Compare to expected LOSS
+p_value <- mean(boot_earnings <= -expected_loss)  
 
 # Print the results
-cat("Observed Earnings:", observed_earnings, "\n")
+cat(
+  "Observed Earnings:", observed_earnings, "\n",
+  "Expected Loss (with 15% takeout):", expected_loss, "\n",
+  "p-value:", p_value, "\n"
+)
 ```
 
-    ## Observed Earnings: 19.9
-
-``` r
-cat("Expected Loss (with 15% takeout):", expected_loss, "\n")
-```
-
-    ## Expected Loss (with 15% takeout): 137.85
-
-``` r
-cat("P-value:", p_value, "\n")
-```
-
-    ## P-value: 0.0363
-
-``` r
-# Assuming your 'bets' dataframe has columns 'cumulative_earnings' and an index or column representing the bet number
-
-# Calculate expected earnings for each bet (assuming 1 unit bet and 15% takeout)
-expected_earnings <- -0.15 * 1:nrow(bets) 
-
-# Create the plot
-ggplot(bets, aes(x = 1:nrow(bets))) +  # Assuming you have an index or a column for bet number
-  geom_line(aes(y = cumulative_earnings)) + 
-  geom_line(aes(y = expected_earnings), color = "red", linetype = "dashed") +  # Add expected earnings line
-  labs(title = "Cumulative Earnings over Number of Bets",
-       x = "Number of Bets",
-       y = "Cumulative Earnings") +
-  theme_minimal() 
-```
-
-![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+    ## Observed Earnings: 19.9 
+    ##  Expected Loss (with 15% takeout): 137.85 
+    ##  p-value: 0.0363
 
 [^1]: For more information on parimutuel betting, see the [Wikipedia
     article](https://en.wikipedia.org/wiki/Parimutuel_betting).
