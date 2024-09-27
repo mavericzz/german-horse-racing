@@ -71,8 +71,8 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 start_date = input("Start Date (YYYYMMDD)? ")
 end_date = input("End Date (YYYYMMDD)? ")
 csv_file_input = input("File Name? ")
-csv_file = csv_file_input + ".csv"
-errors_file = "errors_" + csv_file_input + ".csv"
+csv_file = "../data/raw/race_results/" + csv_file_input + ".csv"
+errors_file = "../data/raw/race_results/" + "errors_" + csv_file_input + ".csv"
 # build variables from input to concatenate to url later
 start_year = start_date[0:4]
 start_month = start_date[4:6]
