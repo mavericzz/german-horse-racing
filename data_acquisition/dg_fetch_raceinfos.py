@@ -222,7 +222,7 @@ end_month = end_date[4:6]
 end_day = end_date[6:8]
 
 csv_file_input = input("File Name? ")
-csv_file = csv_file_input + ".csv"
+csv_file = "../data/raw/race_infos/" + csv_file_input + ".csv"
 errors_file = "errors_" + csv_file_input + ".csv"
 
 
