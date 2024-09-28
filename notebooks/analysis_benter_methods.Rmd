@@ -19,7 +19,10 @@ library(zoo)
 
 # 1 Horse Racing in Germany
 
-Germany features two primary types of horse racing: Harness racing and flat racing. Steeplechasing and hurdling have largely faded into history. This notebook will concentrate on flat racing.
+Germany features two primary types of horse racing: Harness racing and flat racing. Steeplechasing and hurdling have largely faded into history.[^racingtypes] This notebook will concentrate on flat racing.
+
+[^racingtypes]: For a more detailed overview of the different types of horse racing, see the [Wikipedia article](https://en.wikipedia.org/wiki/Horse_racing#Types_of_horse_racing).
+
 
 ## 1.1 Betting Market
 
@@ -28,15 +31,16 @@ Betting plays a crucial role in German horse racing, as a portion of the prize m
 [^parimutuel]: For more information on parimutuel betting, see the [Wikipedia article](https://en.wikipedia.org/wiki/Parimutuel_betting).
 
 
-
 ## 1.2 Takeout
 
 In parimutuel betting, the track retains a commission known as takeout. In Germany, the takeout for win and place markets is 15%. This analysis will concentrate solely on the win market.
 
 
+
 # 2 Bill Benter's Approach
 
 Inspired by Bolton and Chapman's (1986) seminal paper, Bill Benter employed a conditional logistic regression model to predict horse racing outcomes in Hong Kong.^[See Bolton, R.N., & Chapman, R.G.(1986). Searching for  positive returns at the track: A multinomial logistic regression model for handicapping horse races. Management Science, 32(8), pp. 1040-1060.] His innovative approach incorporated the public's estimate, as reflected in betting odds, into his model.^[See Benter, W. (1994). Computer-based horse race handicapping and wagering systems: A report. In: Efficiency of Racetrack Betting Markets, pp. 183-198] Following a similar path, we'll attempt to identify market inefficiencies within German horse racing. 
+
 
 
 # 3 Data
@@ -83,7 +87,6 @@ The features used in the model were primarily selected based on existing literat
 ### Other features
 
 * **`odds`**: Betting odds for the horse
-
 
 
 ```{r}
@@ -247,6 +250,7 @@ predictions <- predictions %>%
   filter(!dg_raceid %in% predictions_missing_races)
 ```
 
+
 ### Identifying Bets
 
 Next, the expected value for each horse based on the model's predicted probabilities and the actual betting odds is calculated.  The expected value represents the average profit or loss one can anticipate from a bet on that horse. The predictions are filtered to identify the horse with the highest positive expected value in each race, as laid out with the straightforward betting strategy described above.
@@ -271,15 +275,23 @@ bets <- predictions %>%
       win == 1, odds - 1, -1
     ),
     cumulative_earnings = cumsum(earnings)
-  )
+  ) 
 
-sum(bets$earnings)
+total_bets <- nrow(bets)
+total_earnings <- sum(bets$earnings)
+
+# Print the results
+cat(
+  "Total number of bets:", total_bets, "\n",
+  "Total earnings:", total_earnings
+)
 ```
 
-Our strategy identified 919 potentially profitable bets and generated cumulative earnings of €19.90
+Over the test period, our strategy identified `r total_bets` potentially profitable bets. Assuming a uniform bet size of €1.00, the strategy would have generated cumulative earnings of €`r total_earnings`.
 
 
-## 4.3 Outperforming the Market vs. a few lucky Wins
+
+## 4.3 Outperforming the Market or just a few lucky Wins?
 
 The cumulative earnings over the number of bets are plotted to assess the overall profitability and the pattern of wins and losses over the test period.
 
@@ -339,9 +351,9 @@ cat(
 )
 ```
 
-The bootstrap hypothesis test yields a p-value of 0.0363. This p-value is less than the commonly used significance level of 0.05.
+The bootstrap hypothesis test yields a p-value of `r p_value`. This p-value is less than the commonly used significance level of 0.05.
 
-The low p-value (0.0363) indicates that the observed earnings of €19.90 are statistically significantly higher than what one would expect if the betting strategy's performance were purely due to chance, considering the 15% takeout.
+The low p-value (`r p_value`) indicates that the observed earnings of €`r total_earnings` are statistically significantly higher than what one would expect if the betting strategy's performance were purely due to chance, considering the 15% takeout.
 
 The bootstrap hypothesis test provides strong evidence that the observed earnings are not merely due to chance. 
 

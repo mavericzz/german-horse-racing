@@ -14,7 +14,7 @@ effectiveness of Benter’s approach in the context of German horse
 racing.
 
 ``` r
-library (data.table)
+library(data.table)
 library(survival)
 library(tidyverse)
 library(zoo)
@@ -24,12 +24,12 @@ library(zoo)
 
 Germany features two primary types of horse racing: Harness racing and
 flat racing. Steeplechasing and hurdling have largely faded into
-history. This notebook will concentrate on flat racing.
+history.[^1] This notebook will concentrate on flat racing.
 
 ## 1.1 Betting Market
 
 Betting plays a crucial role in German horse racing, as a portion of the
-prize money is funded by the parimutuel betting operator’s profits.[^1]
+prize money is funded by the parimutuel betting operator’s profits.[^2]
 Betting in Germany occurs through two primary channels: bookmakers
 (fixed odds) and the totalizator (parimutuel). For this analysis, the
 focus lies exclusively on parimutuel odds.
@@ -44,8 +44,8 @@ will concentrate solely on the win market.
 
 Inspired by Bolton and Chapman’s (1986) seminal paper, Bill Benter
 employed a conditional logistic regression model to predict horse racing
-outcomes in Hong Kong.[^2] His innovative approach incorporated the
-public’s estimate, as reflected in betting odds, into his model.[^3]
+outcomes in Hong Kong.[^3] His innovative approach incorporated the
+public’s estimate, as reflected in betting odds, into his model.[^4]
 Following a similar path, we’ll attempt to identify market
 inefficiencies within German horse racing.
 
@@ -260,51 +260,51 @@ summary(model)
     ##     jowins365 + trsr + odds + strata(dg_raceid), data = train_data, 
     ##     method = "exact")
     ## 
-    ##   n= 5620, number of events= 524 
-    ##    (70 observations deleted due to missingness)
+    ##   n= 5630, number of events= 524 
+    ##    (60 observations deleted due to missingness)
     ## 
     ##                         coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## hosr730           -2.590e+00  7.505e-02  1.583e+00  -1.636 0.101920    
-    ## hosr               1.576e+00  4.837e+00  1.659e+00   0.950 0.342039    
-    ## homean4sprat       5.266e-03  1.005e+00  4.757e-03   1.107 0.268363    
-    ## homeanearn365      1.094e-04  1.000e+00  2.112e-04   0.518 0.604296    
-    ## holastsprat        3.874e-03  1.004e+00  3.208e-03   1.208 0.227203    
-    ## hofirstrace        3.487e-01  1.417e+00  5.389e-01   0.647 0.517542    
-    ## hodays            -7.244e-05  9.999e-01  7.954e-04  -0.091 0.927436    
-    ## draweffect_median -1.204e-03  9.988e-01  1.914e-02  -0.063 0.949827    
-    ## gag               -1.217e-02  9.879e-01  3.147e-02  -0.387 0.698976    
-    ## gagindicatorTRUE  -4.994e-02  9.513e-01  1.301e-01  -0.384 0.701136    
-    ## blinkers1sttime   -3.147e-01  7.300e-01  1.802e-01  -1.747 0.080677 .  
-    ## weight            -2.240e-03  9.978e-01  3.401e-02  -0.066 0.947479    
-    ## josr365            6.925e-01  1.999e+00  6.773e-01   1.022 0.306568    
-    ## jowins365          2.361e-03  1.002e+00  1.940e-03   1.217 0.223682    
-    ## trsr               4.397e+00  8.122e+01  1.233e+00   3.565 0.000363 ***
-    ## odds              -8.755e-02  9.162e-01  8.512e-03 -10.285  < 2e-16 ***
+    ## hosr730           -2.6031964  0.0740366  1.5838718  -1.644  0.10027    
+    ## hosr               1.5842952  4.8758534  1.6590735   0.955  0.33961    
+    ## homean4sprat       0.0058641  1.0058813  0.0046976   1.248  0.21191    
+    ## homeanearn365      0.0001162  1.0001162  0.0002112   0.550  0.58218    
+    ## holastsprat        0.0030170  1.0030215  0.0031465   0.959  0.33764    
+    ## hofirstrace        0.3334776  1.3958138  0.5377979   0.620  0.53521    
+    ## hodays            -0.0001106  0.9998894  0.0008036  -0.138  0.89054    
+    ## draweffect_median -0.0012922  0.9987086  0.0191354  -0.068  0.94616    
+    ## gag               -0.0135620  0.9865295  0.0314726  -0.431  0.66653    
+    ## gagindicatorTRUE  -0.0449279  0.9560664  0.1300400  -0.345  0.72972    
+    ## blinkers1sttime   -0.3136789  0.7307536  0.1802375  -1.740  0.08180 .  
+    ## weight            -0.0016044  0.9983969  0.0340307  -0.047  0.96240    
+    ## josr365            0.6950807  2.0038708  0.6769128   1.027  0.30450    
+    ## jowins365          0.0023511  1.0023538  0.0019387   1.213  0.22525    
+    ## trsr               4.4032058 81.7124020  1.2316190   3.575  0.00035 ***
+    ## odds              -0.0877171  0.9160200  0.0085094 -10.308  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##                   exp(coef) exp(-coef) lower .95 upper .95
-    ## hosr730             0.07505   13.32363  0.003371    1.6712
-    ## hosr                4.83723    0.20673  0.187243  124.9648
-    ## homean4sprat        1.00528    0.99475  0.995950    1.0147
-    ## homeanearn365       1.00011    0.99989  0.999696    1.0005
-    ## holastsprat         1.00388    0.99613  0.997589    1.0102
-    ## hofirstrace         1.41727    0.70558  0.492897    4.0752
-    ## hodays              0.99993    1.00007  0.998370    1.0015
-    ## draweffect_median   0.99880    1.00121  0.962021    1.0370
-    ## gag                 0.98791    1.01224  0.928820    1.0508
-    ## gagindicatorTRUE    0.95129    1.05121  0.737136    1.2276
-    ## blinkers1sttime     0.72999    1.36989  0.512798    1.0392
-    ## weight              0.99776    1.00224  0.933418    1.0665
-    ## josr365             1.99864    0.50034  0.529965    7.5374
-    ## jowins365           1.00236    0.99764  0.998559    1.0062
-    ## trsr               81.21828    0.01231  7.242346  910.8112
-    ## odds                0.91617    1.09150  0.901015    0.9316
+    ## hosr730             0.07404   13.50684  0.003321    1.6506
+    ## hosr                4.87585    0.20509  0.188732  125.9669
+    ## homean4sprat        1.00588    0.99415  0.996663    1.0152
+    ## homeanearn365       1.00012    0.99988  0.999702    1.0005
+    ## holastsprat         1.00302    0.99699  0.996855    1.0092
+    ## hofirstrace         1.39581    0.71643  0.486467    4.0050
+    ## hodays              0.99989    1.00011  0.998316    1.0015
+    ## draweffect_median   0.99871    1.00129  0.961946    1.0369
+    ## gag                 0.98653    1.01365  0.927514    1.0493
+    ## gagindicatorTRUE    0.95607    1.04595  0.740965    1.2336
+    ## blinkers1sttime     0.73075    1.36845  0.513278    1.0404
+    ## weight              0.99840    1.00161  0.933977    1.0673
+    ## josr365             2.00387    0.49903  0.531717    7.5519
+    ## jowins365           1.00235    0.99765  0.998552    1.0062
+    ## trsr               81.71240    0.01224  7.310246  913.3642
+    ## odds                0.91602    1.09168  0.900869    0.9314
     ## 
     ## Concordance= 0.738  (se = 0.013 )
-    ## Likelihood ratio test= 343.2  on 16 df,   p=<2e-16
+    ## Likelihood ratio test= 343.8  on 16 df,   p=<2e-16
     ## Wald test            = 194.2  on 16 df,   p=<2e-16
-    ## Score (logrank) test = 219.6  on 16 df,   p=<2e-16
+    ## Score (logrank) test = 219.5  on 16 df,   p=<2e-16
 
 The estimated coefficients are extracted from the model summary for use
 in subsequent predictions on the test data.
@@ -372,17 +372,26 @@ bets <- predictions %>%
       win == 1, odds - 1, -1
     ),
     cumulative_earnings = cumsum(earnings)
-  )
+  ) 
 
-sum(bets$earnings)
+total_bets <- nrow(bets)
+total_earnings <- sum(bets$earnings)
+
+# Print the results
+cat(
+  "Total number of bets:", total_bets, "\n",
+  "Total earnings:", total_earnings
+)
 ```
 
-    ## [1] 19.9
+    ## Total number of bets: 935 
+    ##  Total earnings: 33
 
-Our strategy identified 919 potentially profitable bets and generated
-cumulative earnings of €19.90
+Over the test period, our strategy identified 935 potentially profitable
+bets. Assuming a uniform bet size of €1.00, the strategy would have
+generated cumulative earnings of €33.
 
-## 4.3 Outperforming the Market vs. a few lucky Wins
+## 4.3 Outperforming the Market or just a few lucky Wins?
 
 The cumulative earnings over the number of bets are plotted to assess
 the overall profitability and the pattern of wins and losses over the
@@ -446,15 +455,15 @@ cat(
 )
 ```
 
-    ## Observed Earnings: 19.9 
-    ##  Expected Loss (with 15% takeout): 137.85 
-    ##  p-value: 0.0363
+    ## Observed Earnings: 33 
+    ##  Expected Loss (with 15% takeout): 140.25 
+    ##  p-value: 0.0274
 
-The bootstrap hypothesis test yields a p-value of 0.0363. This p-value
+The bootstrap hypothesis test yields a p-value of 0.0274. This p-value
 is less than the commonly used significance level of 0.05.
 
-The low p-value (0.0363) indicates that the observed earnings of €19.90
-are statistically significantly higher than what one would expect if the
+The low p-value (0.0274) indicates that the observed earnings of €33 are
+statistically significantly higher than what one would expect if the
 betting strategy’s performance were purely due to chance, considering
 the 15% takeout.
 
@@ -500,13 +509,17 @@ to the way how parimutuel betting markets work. If you place a
 significant bet on a horse in the win market the odds of that horse are
 going to drop, potentially making your advantage disappear.
 
-[^1]: For more information on parimutuel betting, see the [Wikipedia
+[^1]: For a more detailed overview of the different types of horse
+    racing, see the [Wikipedia
+    article](https://en.wikipedia.org/wiki/Horse_racing#Types_of_horse_racing).
+
+[^2]: For more information on parimutuel betting, see the [Wikipedia
     article](https://en.wikipedia.org/wiki/Parimutuel_betting).
 
-[^2]: See Bolton, R.N., & Chapman, R.G.(1986). Searching for positive
+[^3]: See Bolton, R.N., & Chapman, R.G.(1986). Searching for positive
     returns at the track: A multinomial logistic regression model for
     handicapping horse races. Management Science, 32(8), pp. 1040-1060.
 
-[^3]: See Benter, W. (1994). Computer-based horse race handicapping and
+[^4]: See Benter, W. (1994). Computer-based horse race handicapping and
     wagering systems: A report. In: Efficiency of Racetrack Betting
     Markets, pp. 183-198
