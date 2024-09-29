@@ -474,9 +474,9 @@ earnings are not merely due to chance.
 # Create a histogram of the bootstrapped earnings
 ggplot(data.frame(earnings = boot_earnings), aes(x = earnings)) + 
   geom_histogram(binwidth = 5, fill = "lightblue", color = "black") +  
-  # Add a vertical line for observed earnings
+  # Add a red vertical line for observed earnings
   geom_vline(xintercept = observed_earnings, color = "red", linetype = "dashed") +
-  # Add a vertical line for expected loss
+  # Add a blue vertical line for expected loss
   geom_vline(xintercept = -expected_loss, color = "blue", linetype = "dashed") +  
   labs(
     title = "Bootstrap Distribution of Earnings",
@@ -504,10 +504,15 @@ Moreover, the betting market is dynamic and subject to fluctuations, so
 continued monitoring and adaptation of the strategy would be necessary
 for sustained success.
 
-One other big problem in employing such a betting strategy is connected
-to the way how parimutuel betting markets work. If you place a
-significant bet on a horse in the win market the odds of that horse are
-going to drop, potentially making your advantage disappear.
+A significant challenge in employing this kind of betting strategy
+arises from the nature of parimutuel betting markets. Placing a large
+bet on a horse can cause its odds to drop, potentially eliminating any
+predicted advantage.
+
+The model could be improved by using k-fold cross-validation and an
+information criterion (e.g., AIC) for variable selection. Additionally,
+developing new and more sophisticated features or trying other methods
+like random forests could enhance its predictive power.
 
 [^1]: For a more detailed overview of the different types of horse
     racing, see the [Wikipedia
