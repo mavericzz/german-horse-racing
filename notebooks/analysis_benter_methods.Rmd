@@ -361,9 +361,9 @@ The bootstrap hypothesis test provides strong evidence that the observed earning
 # Create a histogram of the bootstrapped earnings
 ggplot(data.frame(earnings = boot_earnings), aes(x = earnings)) + 
   geom_histogram(binwidth = 5, fill = "lightblue", color = "black") +  
-  # Add a vertical line for observed earnings
+  # Add a red vertical line for observed earnings
   geom_vline(xintercept = observed_earnings, color = "red", linetype = "dashed") +
-  # Add a vertical line for expected loss
+  # Add a blue vertical line for expected loss
   geom_vline(xintercept = -expected_loss, color = "blue", linetype = "dashed") +  
   labs(
     title = "Bootstrap Distribution of Earnings",
