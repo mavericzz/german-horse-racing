@@ -406,6 +406,9 @@ races_wrong_odds <- c(
 )
 
 
+
+##------------------------------- GAG ----------------------------------------##
+
 races <- races %>% 
   mutate(
     weightadj3yo = str_extract(
@@ -433,13 +436,25 @@ races <- races %>%
     vars(weightadj3yo, weightadj4yoplus), ~replace_na(., 0)
   ) %>% 
   mutate(
-    gag = ifelse(
-      hoage <= 3,
-      weight + weight_allowance - weight_penalty - weightadj3yo,
-      weight + weight_allowance - weight_penalty - weightadj4yoplus
-    )  
-  )
-
+    gag_turf = ifelse(
+      surface == "Turf" & grepl("^Ausgleich", race_class_old),
+      ifelse(
+        hoage <= 3,
+        weight + weight_allowance - weight_penalty - weightadj3yo,
+        weight + weight_allowance - weight_penalty - weightadj4yoplus
+      ),
+      NA
+    ),
+    gag_dirt = ifelse(
+      surface == "Dirt" & grepl("^Ausgleich", race_class_old),
+      ifelse(
+        hoage <= 3,
+        weight + weight_allowance - weight_penalty - weightadj3yo,
+        weight + weight_allowance - weight_penalty - weightadj4yoplus
+      ),
+      NA
+    )
+  ) 
 
 
 
