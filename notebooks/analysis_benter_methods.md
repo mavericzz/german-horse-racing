@@ -496,8 +496,8 @@ earnings plot further suggests that the betting strategy based on the
 model’s predictions has the potential to generate profits beyond what
 would be expected by chance, given the takeout rate.
 
-However, it’s important to acknowledge the limitations of this analysis.
-The model was trained and tested on a specific subset of races
+However, it’s important to acknowledge the limitations of this analysis. There is good chance the model is overfitted.
+Also the model was trained and tested on a specific subset of races
 (“Ausgleich IV” handicap races on turf), and its performance might not
 generalize to other types of races or different market conditions.
 Moreover, the betting market is dynamic and subject to fluctuations, so
