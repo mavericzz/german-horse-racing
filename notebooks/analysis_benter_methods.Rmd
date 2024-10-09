@@ -49,7 +49,7 @@ This analysis utilizes German horse racing data collected via web scraping from 
 
 ```{r}
 # Import data
-races <- readRDS("../data/processed/engineered_features.Rds")
+races <- readRDS("../data/processed/imputed_data_for_clogit_agliv.Rds")
 ```
 
 
@@ -93,12 +93,12 @@ The features used in the model were primarily selected based on existing literat
 # Define a vector to store the names of features used in the model
 features <- c(
   # Horse-related features
-  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
-  "hofirstrace", "hodays", "draweffect_median", "gag", "gagindicator", 
+  "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
+  "hofirstrace", "hodays", "draweffect_median", "gag_turf", "gagindicator_turf", 
   "blinkers1sttime", "weight",
   
   # Jockey-related features
-  "josr365", "jowins365", 
+  "josr365", "jowins365", "joam", 
   
   # Trainer-related features
   "trsr",
