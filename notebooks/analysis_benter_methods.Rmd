@@ -11,6 +11,7 @@ Web-scraped data and a conditional logistic regression model will be leveraged t
 
 ```{r, message=FALSE, warning=FALSE}
 library(data.table)
+library(gt)
 library(survival)
 library(tidyverse)
 library(zoo)
@@ -112,7 +113,56 @@ features <- c(
 
 ## 3.2 Filtering and Preparing the Data
 
-This section prepares the data for model training and prediction. Jump races and stakes races are excluded as the focus is on flat races and specifically "Ausgleich IV" handicap races. "Ausgleich IV" races are the lowest class of racing in Germany and those races are run very frequently with many observations per horse in a year. Additionally, races before 2019 are removed due to a significantly different takeout rate at that time. The data is further filtered to ensure data integrity by removing races with missing odds, homean4sprat values, or stall numbers. Lastly, races with dead heats are excluded and the data is sorted by date and time.
+This section prepares the data for model training and prediction. Jump races and stakes races are excluded as the focus is on flat races and specifically "Ausgleich IV" handicap races. "Ausgleich IV" races are the lowest class of racing in Germany and those races are run very frequently with many observations per horse in a year. 
+
+```{r echo=FALSE}
+# Filtering races df for Ausgleich IV races to get a summary: 
+# races per year and average purse
+agliv_races <- races %>% 
+  filter(
+    race_class_old == "Ausgleich IV", 
+    surface == "Turf",
+    race_type == "flat",
+    date_time < "2024-01-01 01:00:00"
+  ) %>% 
+  select(dg_raceid, dg_course, dg_title, date_time, race_no, purse) %>% 
+  distinct() %>%
+  group_by(year = year(date_time)) %>% 
+  summarise(
+    num_races = n(),
+    mean_purse = mean(purse)
+  )
+
+# Creating a table with `gt`
+agliv_races_gttable <- gt(agliv_races) %>% 
+  tab_header(
+    title = "Number of Races per Year for Ausgleich IV"
+  ) %>% 
+  cols_label(
+    year = "Year", num_races = "Number of Races", mean_purse = "Average Purse"
+  ) %>% 
+  fmt_currency(
+    columns = c(mean_purse),
+    currency = "EUR",
+    sep_mark = ","
+  ) %>% 
+  tab_options(
+    table.font.size = px(12)
+  ) %>%
+  cols_align(
+    align = "left",
+    columns = c(year)
+  ) %>%
+  cols_align(
+    align = "right",
+    columns = c(num_races, mean_purse)
+  ) 
+```
+
+Additionally, races before 2019 are removed due to a significantly different takeout rate at that time. The data is further filtered to ensure data integrity by removing races with missing odds, homean4sprat values, or stall numbers. Lastly, races with dead heats are excluded and the data is sorted by date and time.
+
+
+
 
 ```{r, warning=FALSE}
 # Finding races with dead heats
