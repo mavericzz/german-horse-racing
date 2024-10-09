@@ -55,7 +55,7 @@ races <- readRDS("../data/processed/imputed_data_for_clogit_agliv.Rds")
 
 ## 3.1 Feature Descriptions
 
-The features used in the model were primarily selected based on existing literature, common sense, and domain expertise in horse racing.
+The features used in the model were primarily selected based on existing literature, common sense, domain expertise in horse racing, and minimising AIC on datasets before 2019.
 
 ### Horse-related features
 
