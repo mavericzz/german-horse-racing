@@ -15,6 +15,7 @@ racing.
 
 ``` r
 library(data.table)
+library(gt)
 library(survival)
 library(tidyverse)
 library(zoo)
@@ -64,13 +65,14 @@ be found in the [data_processing folder](../data_processing/).
 
 ``` r
 # Import data
-races <- readRDS("../data/processed/engineered_features.Rds")
+races <- readRDS("../data/processed/imputed_data_for_clogit_agliv.Rds")
 ```
 
 ## 3.1 Feature Descriptions
 
 The features used in the model were primarily selected based on existing
-literature, common sense, and domain expertise in horse racing.
+literature, common sense, domain expertise in horse racing, and
+minimising AIC on datasets before 2019.
 
 ### Horse-related features
 
@@ -110,12 +112,12 @@ literature, common sense, and domain expertise in horse racing.
 # Define a vector to store the names of features used in the model
 features <- c(
   # Horse-related features
-  "hosr730", "hosr", "homean4sprat", "homeanearn365", "holastsprat",
-  "hofirstrace", "hodays", "draweffect_median", "gag", "gagindicator", 
+  "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
+  "hofirstrace", "hodays", "draweffect_median", "gag_turf", "gagindicator_turf", 
   "blinkers1sttime", "weight",
   
   # Jockey-related features
-  "josr365", "jowins365", 
+  "josr365", "jowins365", "joam", 
   
   # Trainer-related features
   "trsr",
@@ -131,12 +133,13 @@ This section prepares the data for model training and prediction. Jump
 races and stakes races are excluded as the focus is on flat races and
 specifically “Ausgleich IV” handicap races. “Ausgleich IV” races are the
 lowest class of racing in Germany and those races are run very
-frequently with many observations per horse in a year. Additionally,
-races before 2019 are removed due to a significantly different takeout
-rate at that time. The data is further filtered to ensure data integrity
-by removing races with missing odds, homean4sprat values, or stall
-numbers. Lastly, races with dead heats are excluded and the data is
-sorted by date and time.
+frequently with many observations per horse in a year.
+
+Additionally, races before 2019 are removed due to a significantly
+different takeout rate at that time. The data is further filtered to
+ensure data integrity by removing races with missing odds, homean4sprat
+values, or stall numbers. Lastly, races with dead heats are excluded and
+the data is sorted by date and time.
 
 ``` r
 # Finding races with dead heats
@@ -237,10 +240,10 @@ model_formula <- as.formula(
 print(model_formula)
 ```
 
-    ## win ~ hosr730 + hosr + homean4sprat + homeanearn365 + holastsprat + 
-    ##     hofirstrace + hodays + draweffect_median + gag + gagindicator + 
-    ##     blinkers1sttime + weight + josr365 + jowins365 + trsr + odds + 
-    ##     strata(dg_raceid)
+    ## win ~ hosr730 + homean4sprat + homeanearn365 + holastsprat + 
+    ##     hofirstrace + hodays + draweffect_median + gag_turf + gagindicator_turf + 
+    ##     blinkers1sttime + weight + josr365 + jowins365 + joam + trsr + 
+    ##     odds + strata(dg_raceid)
 
 ``` r
 # Fit the conditional logistic regression model
@@ -254,57 +257,57 @@ summary(model)
 ```
 
     ## Call:
-    ## coxph(formula = Surv(rep(1, 5690L), win) ~ hosr730 + hosr + homean4sprat + 
+    ## coxph(formula = Surv(rep(1, 5690L), win) ~ hosr730 + homean4sprat + 
     ##     homeanearn365 + holastsprat + hofirstrace + hodays + draweffect_median + 
-    ##     gag + gagindicator + blinkers1sttime + weight + josr365 + 
-    ##     jowins365 + trsr + odds + strata(dg_raceid), data = train_data, 
-    ##     method = "exact")
+    ##     gag_turf + gagindicator_turf + blinkers1sttime + weight + 
+    ##     josr365 + jowins365 + joam + trsr + odds + strata(dg_raceid), 
+    ##     data = train_data, method = "exact")
     ## 
     ##   n= 5630, number of events= 524 
     ##    (60 observations deleted due to missingness)
     ## 
-    ##                         coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## hosr730           -2.6031964  0.0740366  1.5838718  -1.644  0.10027    
-    ## hosr               1.5842952  4.8758534  1.6590735   0.955  0.33961    
-    ## homean4sprat       0.0058641  1.0058813  0.0046976   1.248  0.21191    
-    ## homeanearn365      0.0001162  1.0001162  0.0002112   0.550  0.58218    
-    ## holastsprat        0.0030170  1.0030215  0.0031465   0.959  0.33764    
-    ## hofirstrace        0.3334776  1.3958138  0.5377979   0.620  0.53521    
-    ## hodays            -0.0001106  0.9998894  0.0008036  -0.138  0.89054    
-    ## draweffect_median -0.0012922  0.9987086  0.0191354  -0.068  0.94616    
-    ## gag               -0.0135620  0.9865295  0.0314726  -0.431  0.66653    
-    ## gagindicatorTRUE  -0.0449279  0.9560664  0.1300400  -0.345  0.72972    
-    ## blinkers1sttime   -0.3136789  0.7307536  0.1802375  -1.740  0.08180 .  
-    ## weight            -0.0016044  0.9983969  0.0340307  -0.047  0.96240    
-    ## josr365            0.6950807  2.0038708  0.6769128   1.027  0.30450    
-    ## jowins365          0.0023511  1.0023538  0.0019387   1.213  0.22525    
-    ## trsr               4.4032058 81.7124020  1.2316190   3.575  0.00035 ***
-    ## odds              -0.0877171  0.9160200  0.0085094 -10.308  < 2e-16 ***
+    ##                             coef  exp(coef)   se(coef)       z Pr(>|z|)    
+    ## hosr730               -1.1905708  0.3040477  0.7208909  -1.652  0.09863 .  
+    ## homean4sprat           0.0066294  1.0066514  0.0047025   1.410  0.15861    
+    ## homeanearn365          0.0001120  1.0001120  0.0002147   0.522  0.60171    
+    ## holastsprat            0.0028744  1.0028786  0.0031404   0.915  0.36003    
+    ## hofirstrace            0.2834857  1.3277498  0.5371716   0.528  0.59768    
+    ## hodays                -0.0001918  0.9998082  0.0008240  -0.233  0.81593    
+    ## draweffect_median     -0.0016185  0.9983828  0.0190523  -0.085  0.93230    
+    ## gag_turf              -0.0037444  0.9962626  0.0313647  -0.119  0.90497    
+    ## gagindicator_turfTRUE -0.2937022  0.7454984  0.1498630  -1.960  0.05002 .  
+    ## blinkers1sttime       -0.2988361  0.7416809  0.1803307  -1.657  0.09749 .  
+    ## weight                -0.0106346  0.9894217  0.0340154  -0.313  0.75455    
+    ## josr365                0.8619055  2.3676681  0.6835056   1.261  0.20731    
+    ## jowins365              0.0013303  1.0013312  0.0019792   0.672  0.50149    
+    ## joam                  -0.5616837  0.5702481  0.2250720  -2.496  0.01258 *  
+    ## trsr                   4.1272125 62.0048458  1.2321970   3.349  0.00081 ***
+    ## odds                  -0.0855676  0.9179911  0.0084564 -10.119  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ##                   exp(coef) exp(-coef) lower .95 upper .95
-    ## hosr730             0.07404   13.50684  0.003321    1.6506
-    ## hosr                4.87585    0.20509  0.188732  125.9669
-    ## homean4sprat        1.00588    0.99415  0.996663    1.0152
-    ## homeanearn365       1.00012    0.99988  0.999702    1.0005
-    ## holastsprat         1.00302    0.99699  0.996855    1.0092
-    ## hofirstrace         1.39581    0.71643  0.486467    4.0050
-    ## hodays              0.99989    1.00011  0.998316    1.0015
-    ## draweffect_median   0.99871    1.00129  0.961946    1.0369
-    ## gag                 0.98653    1.01365  0.927514    1.0493
-    ## gagindicatorTRUE    0.95607    1.04595  0.740965    1.2336
-    ## blinkers1sttime     0.73075    1.36845  0.513278    1.0404
-    ## weight              0.99840    1.00161  0.933977    1.0673
-    ## josr365             2.00387    0.49903  0.531717    7.5519
-    ## jowins365           1.00235    0.99765  0.998552    1.0062
-    ## trsr               81.71240    0.01224  7.310246  913.3642
-    ## odds                0.91602    1.09168  0.900869    0.9314
+    ##                       exp(coef) exp(-coef) lower .95 upper .95
+    ## hosr730                  0.3040    3.28896   0.07401    1.2490
+    ## homean4sprat             1.0067    0.99339   0.99742    1.0160
+    ## homeanearn365            1.0001    0.99989   0.99969    1.0005
+    ## holastsprat              1.0029    0.99713   0.99672    1.0091
+    ## hofirstrace              1.3277    0.75315   0.46331    3.8050
+    ## hodays                   0.9998    1.00019   0.99819    1.0014
+    ## draweffect_median        0.9984    1.00162   0.96179    1.0364
+    ## gag_turf                 0.9963    1.00375   0.93686    1.0594
+    ## gagindicator_turfTRUE    0.7455    1.34138   0.55575    1.0000
+    ## blinkers1sttime          0.7417    1.34829   0.52086    1.0561
+    ## weight                   0.9894    1.01069   0.92561    1.0576
+    ## josr365                  2.3677    0.42236   0.62018    9.0390
+    ## jowins365                1.0013    0.99867   0.99745    1.0052
+    ## joam                     0.5702    1.75362   0.36684    0.8864
+    ## trsr                    62.0048    0.01613   5.54087  693.8628
+    ## odds                     0.9180    1.08934   0.90290    0.9333
     ## 
     ## Concordance= 0.738  (se = 0.013 )
-    ## Likelihood ratio test= 343.8  on 16 df,   p=<2e-16
-    ## Wald test            = 194.2  on 16 df,   p=<2e-16
-    ## Score (logrank) test = 219.5  on 16 df,   p=<2e-16
+    ## Likelihood ratio test= 354  on 16 df,   p=<2e-16
+    ## Wald test            = 203  on 16 df,   p=<2e-16
+    ## Score (logrank) test = 230.5  on 16 df,   p=<2e-16
 
 The estimated coefficients are extracted from the model summary for use
 in subsequent predictions on the test data.
@@ -384,12 +387,12 @@ cat(
 )
 ```
 
-    ## Total number of bets: 935 
-    ##  Total earnings: 33
+    ## Total number of bets: 946 
+    ##  Total earnings: 35.4
 
-Over the test period, our strategy identified 935 potentially profitable
+Over the test period, our strategy identified 946 potentially profitable
 bets. Assuming a uniform bet size of €1.00, the strategy would have
-generated cumulative earnings of €33.
+generated cumulative earnings of €35.4.
 
 ## 4.3 Outperforming the Market or just a few lucky Wins?
 
@@ -411,7 +414,7 @@ ggplot(bets, aes(x = 1:nrow(bets))) +
   theme_minimal() 
 ```
 
-![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 By conducting a bootstrap hypothesis test it is assessed if the observed
 earnings are significantly different from what one would expect due to
@@ -455,15 +458,15 @@ cat(
 )
 ```
 
-    ## Observed Earnings: 33 
-    ##  Expected Loss (with 15% takeout): 140.25 
-    ##  p-value: 0.0274
+    ## Observed Earnings: 35.4 
+    ##  Expected Loss (with 15% takeout): 141.9 
+    ##  p-value: 0.0283
 
-The bootstrap hypothesis test yields a p-value of 0.0274. This p-value
+The bootstrap hypothesis test yields a p-value of 0.0283. This p-value
 is less than the commonly used significance level of 0.05.
 
-The low p-value (0.0274) indicates that the observed earnings of €33 are
-statistically significantly higher than what one would expect if the
+The low p-value (0.0283) indicates that the observed earnings of €35.4
+are statistically significantly higher than what one would expect if the
 betting strategy’s performance were purely due to chance, considering
 the 15% takeout.
 
@@ -486,7 +489,7 @@ ggplot(data.frame(earnings = boot_earnings), aes(x = earnings)) +
   theme_minimal()
 ```
 
-![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](analysis_benter_methods_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 # 5 Conclusion
 
@@ -496,8 +499,8 @@ earnings plot further suggests that the betting strategy based on the
 model’s predictions has the potential to generate profits beyond what
 would be expected by chance, given the takeout rate.
 
-However, it’s important to acknowledge the limitations of this analysis. There is good chance the model is overfitted.
-Also the model was trained and tested on a specific subset of races
+However, it’s important to acknowledge the limitations of this analysis.
+The model was trained and tested on a specific subset of races
 (“Ausgleich IV” handicap races on turf), and its performance might not
 generalize to other types of races or different market conditions.
 Moreover, the betting market is dynamic and subject to fluctuations, so
