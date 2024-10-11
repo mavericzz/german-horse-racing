@@ -54,7 +54,7 @@ races <- readRDS("../data/processed/imputed_data_for_clogit_agliv.Rds")
 ```
 
 
-## 3.1 Feature Descriptions
+## 3.1 Description of potential Features for the Model 
 
 The features used in the model were primarily selected based on existing literature, common sense, domain expertise in horse racing, and minimising AIC on datasets before 2019.
 
@@ -222,10 +222,11 @@ data <- races %>%
 ```
 
 
+## 3.3 Train and Test Split
 
-# 4 Training and Testing the Model
+The dataset is split into a training set and a test set to evaluate the model's performance on unseen data. The training set includes races before January 1, 2021, while the test set contains races from that date onwards. Variable selection and training will be done on `train_data` and the performance of the model will be assessed on the `test_data`.
 
-The dataset is split into a training set and a test set to evaluate the model's performance on unseen data. The training set includes races before January 1, 2021, while the test set contains races from that date onwards. This split allows us to assess how well the model generalizes to new races and avoids overfitting to the training data.
+The unusual split ratio of 1:2 (training on one-third of the data and testing on two-thirds of the data) has been chosen because the cumulative earnings of employing the model and a simple betting strategy will be used to measure the model's performance. Two-thirds of the data equals roughly 1000 races, which is a good number of races to evaluate potential betting strategies.
 
 ```{r}
 # Create training dataset using races before 2021
@@ -239,7 +240,88 @@ test_data <- data %>%
 ```
 
 
-## 4.1 Training the Model
+# 4 Variable Selection Process via AIC
+
+The goal is to automate the feature selection process for the model. Looking for a feature combination which minimizes the AIC on the training set is one possible route in solving this problem. The `odds` variable could and maybe should be left out at this stage because the odds are a very strong predictor for the win probabilities of each horse. Inclusion of the odds in the variable selection process could mask important relations between the other features and the dependent variable (`win`).
+
+
+```{r}
+# Initialize an empty model
+best_model <- clogit(win ~ 1 + strata(dg_raceid), data = train_data) 
+best_aic <- Inf
+
+# Initialize a vector to store selected features
+selected_features <- c()
+
+# Loop through features
+for (i in 1:length(features)) {
+  
+  # Initialize lowest AIC for this iteration
+  lowest_aic <- best_aic  
+  
+  # Loop through remaining features
+  # print(setdiff(features, selected_features))
+  for (feature in setdiff(features, selected_features)) {
+    
+    # Create formula with current feature added
+    formula <- as.formula(
+      paste(
+        "win ~", paste(c(selected_features, feature), collapse = " + "), 
+        "+ strata(dg_raceid)"
+      )
+    )
+    #print(formula)
+    
+    # Fit the model
+    model <- clogit(formula, data = train_data)
+    
+    # Check if AIC is lower than current best
+    if (AIC(model) < lowest_aic) {
+      lowest_aic <- AIC(model)
+      best_feature <- feature
+    } 
+  }
+  
+  
+  print(
+    paste(
+      "lowest_aic: ", as.character(lowest_aic), " best aic: ", as.character(best_aic)
+    )
+  )
+  if (lowest_aic == best_aic) {
+    break
+  }
+  
+  # Add the best feature to the selected features
+  selected_features <- c(selected_features, best_feature)
+  
+  # Update the best model and AIC
+  formula <- as.formula(
+    paste(
+      "win ~", paste(selected_features, collapse = " + "), "+ strata(dg_raceid)"
+    )
+  )
+  best_model <- clogit(formula, data = train_data, method = "exact")
+  best_aic <- lowest_aic
+  
+  # Print the selected feature in this iteration
+  print(paste("Iteration", i, ":", "Selected feature:", best_feature))
+}
+
+# Print the best model summary
+summary(best_model)
+```
+
+
+
+
+
+# 5 Training and Testing the Model
+
+
+
+
+## 5.1 Training the Model
 
 A conditional logistic regression model (`clogit`) is employed to predict the probability of a horse winning a race. This model is wellsuited for analyzing data with multiple observations within groups (horses within races) and allows us to account for the inherent  dependencies within each race. This approach is consistent with Bill Benter's strategy in horse race prediction. But in contrast to Benter's two-step approach to incorporate the public estimate (the odds), here a one-step approach is utilized. 
 
@@ -277,7 +359,7 @@ coeffs <- as.vector(summary(model)$coefficients[, 1])
 
 
 
-## 4.2 Testing the Model
+## 5.2 Testing the Model
 
 The performance of the trained model on unseen data will be evaluated by generating predictions for races in the test set (races after January 1, 2021). Based on these predictions expected values are calculated. A straightforward betting strategy is to bet on the horse with the highest positive expected value in a race. 
 
@@ -341,7 +423,7 @@ Over the test period, our strategy identified `r total_bets` potentially profita
 
 
 
-## 4.3 Outperforming the Market or just a few lucky Wins?
+## 5.3 Outperforming the Market or just a few lucky Wins?
 
 The cumulative earnings over the number of bets are plotted to assess the overall profitability and the pattern of wins and losses over the test period.
 
@@ -425,7 +507,7 @@ ggplot(data.frame(earnings = boot_earnings), aes(x = earnings)) +
 
 
 
-# 5 Conclusion
+# 6 Conclusion
 
 The trained model demonstrated statistically significant predictive power, as evidenced by the bootstrap hypothesis test. The cumulative earnings plot further suggests that the betting strategy based on the model's predictions has the potential to generate profits beyond what would be expected by chance, given the takeout rate.
 
