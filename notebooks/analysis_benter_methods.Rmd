@@ -1,6 +1,10 @@
 ---
 title: "Predicting German Horse Race Outcomes using a Benter-Inspired Model"
-output: github_document
+output: 
+  github_document:
+    toc: true
+    toc_depth: 2
+  
 ---
 
 ## Introduction
@@ -46,7 +50,7 @@ Inspired by Bolton and Chapman's (1986) seminal paper, Bill Benter employed a co
 
 # 3 Data
 
-This analysis utilizes German horse racing data collected via web scraping from the official website of Deutscher Galopp e.V. The dataset encompasses race results, race details, and betting odds spanning from 2002 to the present. However, due to a significantly higher takeout rate before 2019, only races from 2019 onwards are included in model training and testing. Data prior to 2019 was leveraged for feature engineering, drawing inspiration from the work of Bolton and Chapman (1986). The web scraping process is detailed in the [data_acquisition folder](../data_acquisition/), while the feature engineering steps can be found in the [data_processing folder](../data_processing/).
+This analysis utilizes German horse racing data collected via web scraping from the official website of Deutscher Galopp e.V. The dataset encompasses race results, race details, and betting odds spanning from 2002 to the present. However, due to a significantly higher takeout rate before 2019, only races from 2019 onwards are included in model training and testing. Data prior to 2019 was leveraged for feature engineering, drawing inspiration from the work of Bolton and Chapman (1986). The web scraping process is detailed in the [data_acquisition folder](../data_acquisition/), while the feature engineering, and data imputation steps can be found in the [data_processing folder](../data_processing/). The imputation was necessary on several occasions because the conditional logistic regression approach can't handle missing values. Without imputation the number of races that could be used would be too low.
 
 ```{r}
 # Import data
@@ -56,7 +60,7 @@ races <- readRDS("../data/processed/imputed_data_for_clogit_agliv.Rds")
 
 ## 3.1 Description of potential Features for the Model 
 
-The features used in the model were primarily selected based on existing literature, common sense, domain expertise in horse racing, and minimising AIC on datasets before 2019.
+The following set of features used in the automated variable selection process for the final model were primarily chosen based on existing literature, common sense, domain expertise in horse racing.
 
 ### Horse-related features
 
@@ -94,18 +98,18 @@ The features used in the model were primarily selected based on existing literat
 # Define a vector to store the names of features used in the model
 features <- c(
   # Horse-related features
-  "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
+  "hoattend", "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
   "hofirstrace", "hodays", "draweffect_median", "gag_turf", "gagindicator_turf", 
-  "blinkers1sttime", "weight",
+  "blinkers1sttime", "weight", "hohcpclassdrop", "honetgag",
   
   # Jockey-related features
-  "josr365", "jowins365", "joam", 
+  "joattend", "josr365", "jowins365", "joam", 
   
   # Trainer-related features
-  "trsr",
+  "trattend", "trsr", "trmeanearn"
   
   # Other features
-  "odds"
+
 )
 ```
 
@@ -113,7 +117,7 @@ features <- c(
 
 ## 3.2 Filtering and Preparing the Data
 
-This section prepares the data for model training and prediction. Jump races and stakes races are excluded as the focus is on flat races and specifically "Ausgleich IV" handicap races. "Ausgleich IV" races are the lowest class of racing in Germany and those races are run very frequently with many observations per horse in a year. 
+This section prepares the data for variable selection, model training, and prediction. Jump races and stakes races are excluded as the focus is on flat races and specifically "Ausgleich IV" handicap races. "Ausgleich IV" races are the lowest class of racing in Germany and those races are run very frequently with many observations per horse in a year. 
 
 ```{r echo=FALSE}
 # Filtering races df for Ausgleich IV races to get a summary: 
@@ -200,7 +204,8 @@ data <- races %>%
     all_of(
       c(
         features,
-        "dg_raceid", "date_time", "win", "dg_horseid", "horse", "hostall"
+        "dg_raceid", "date_time", "win", "dg_horseid", "horse", "hostall", 
+        "odds"
       )
     )
   ) %>%
@@ -240,9 +245,13 @@ test_data <- data %>%
 ```
 
 
-# 4 Variable Selection Process via AIC
+# 4 Feature Selection Process via AIC
 
-The goal is to automate the feature selection process for the model. Looking for a feature combination which minimizes the AIC on the training set is one possible route in solving this problem. The `odds` variable could and maybe should be left out at this stage because the odds are a very strong predictor for the win probabilities of each horse. Inclusion of the odds in the variable selection process could mask important relations between the other features and the dependent variable (`win`).
+The goal is to automate the feature selection process for the model. Looking for the feature combination which minimizes the Akaike information criterion (AIC) on the training set is one possible route in solving this problem. The `odds` variable should and will be left out at this stage, because the odds are a very strong predictor for the win probabilities of each horse. Inclusion of the odds in the variable selection process could mask important relations between the other features and the dependent variable (`win`).
+
+A conditional logistic regression model (`clogit`) is employed to predict the probability of a horse winning a race. This model is wellsuited for analyzing data with multiple observations within groups (horses within races) and allows us to account for the inherent  dependencies within each race. This approach is consistent with Bill Benter's strategy in horse race prediction. But in contrast to Benter's two-step approach to incorporate the public estimate (the odds), here a one-step approach is utilized.
+
+It is not publicly known how Benter solved the feature selection process. But starting with a combination of features which minimize the AIC seems a reasonable enough approach.
 
 
 ```{r}
@@ -270,7 +279,6 @@ for (i in 1:length(features)) {
         "+ strata(dg_raceid)"
       )
     )
-    #print(formula)
     
     # Fit the model
     model <- clogit(formula, data = train_data)
@@ -285,7 +293,8 @@ for (i in 1:length(features)) {
   
   print(
     paste(
-      "lowest_aic: ", as.character(lowest_aic), " best aic: ", as.character(best_aic)
+      "lowest_aic: ", as.character(lowest_aic), 
+      " best aic: ", as.character(best_aic)
     )
   )
   if (lowest_aic == best_aic) {
@@ -312,7 +321,7 @@ for (i in 1:length(features)) {
 summary(best_model)
 ```
 
-
+The `selected_features` together with the `odds` will be used in the next step to train our model.
 
 
 
@@ -321,40 +330,43 @@ summary(best_model)
 
 
 
-## 5.1 Training the Model
+## 5.1 Incorporating the Odds and training the Model
 
-A conditional logistic regression model (`clogit`) is employed to predict the probability of a horse winning a race. This model is wellsuited for analyzing data with multiple observations within groups (horses within races) and allows us to account for the inherent  dependencies within each race. This approach is consistent with Bill Benter's strategy in horse race prediction. But in contrast to Benter's two-step approach to incorporate the public estimate (the odds), here a one-step approach is utilized. 
+ 
 
 
 
 ```{r}
-# Construct the model formula using the selected features
-model_formula <- as.formula(
+# final features: selected_features + odds
+final_features <- c(selected_features, "odds")
+final_features
+
+# Construct the model formula using the selected features and the odds
+final_model_formula <- as.formula(
   paste(
     "win",
-    paste(paste(features, collapse = " + "), "strata(dg_raceid)", sep = " + "),
+    paste(
+      paste(final_features, collapse = " + "), "strata(dg_raceid)", sep = " + "
+    ),
     sep = " ~ "
   )
 )
-print(model_formula)
+print(final_model_formula)
 ```
 
 ```{r}
 # Fit the conditional logistic regression model
-model <- clogit(
-  model_formula,
-  data = train_data, method = "exact"
-)
+final_model <- clogit(final_model_formula, data = train_data, method = "exact")
 
 # Print model summary
-summary(model)
+summary(final_model)
 ```
 
 The estimated coefficients are extracted from the model summary for use in subsequent predictions on the test data.
 
 ```{r}
 # Extract coefficients from the model summary
-coeffs <- as.vector(summary(model)$coefficients[, 1])
+coeffs <- as.vector(summary(final_model)$coefficients[, 1])
 ```
 
 
@@ -367,7 +379,7 @@ First, the trained model is applied to the test data to generate predictions.
 
 ```{r, warning=FALSE}
 predictions <- test_data[
-  , prediction := as.matrix(test_data[, ..features]) %*% coeffs
+  , prediction := as.matrix(test_data[, ..final_features]) %*% coeffs
 ]
 ```
 
@@ -467,7 +479,9 @@ takeout_rate <- 0.15
 expected_loss <- total_bet_amount * takeout_rate
 
 # Perform bootstrapping for actual earnings
-boot_results_earnings <- boot::boot(data = bets, statistic = calculate_earnings, R = n_bootstraps)
+boot_results_earnings <- boot::boot(
+  data = bets, statistic = calculate_earnings, R = n_bootstraps
+)
 
 # Extract the bootstrap distribution of earnings
 boot_earnings <- boot_results_earnings$t
@@ -517,6 +531,9 @@ A significant challenge in employing this kind of betting strategy arises from t
 
 The model could be improved by using k-fold cross-validation and an information criterion (e.g., AIC) for variable selection. Additionally, developing new and more sophisticated features or trying other methods like random forests could enhance its predictive power.
 
+```{r}
+AIC(final_model)
+```
 ```{r}
 
 ```
