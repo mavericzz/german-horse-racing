@@ -161,7 +161,7 @@ literature, common sense, domain expertise in horse racing.
   innermost stall
 
 ``` r
-# Define a vector to store the names of features used in the model
+# Define a vector to store the names of features used subsequently
 features <- c(
   # Horse-related features
   "hoattend", "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
@@ -636,7 +636,8 @@ generated cumulative earnings of €54.9.
 
 The cumulative earnings over the number of bets are plotted to assess
 the overall profitability and the pattern of wins and losses over the
-test period.
+test period. The dotted red line represents the expected cumulative
+earnings if the horse for the win bet was picked randomly in each race.
 
 ``` r
 # Calculate expected earnings for each bet (assuming 1 unit bet and 15% takeout)
