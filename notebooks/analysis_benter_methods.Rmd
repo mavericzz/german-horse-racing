@@ -69,9 +69,10 @@ races <- readRDS("../data/processed/imputed_data_for_clogit_agliv.Rds")
 
 The following set of features used in the automated variable selection process for the final model were primarily chosen based on existing literature, common sense, domain expertise in horse racing.
 
+
 ### Horse-related features
 
-* **`hoattend`**: Horse's experience measured in number of races the horse has attended over their career
+* **`hoattend`**: Horse's experience measured in number of races the horse has attended over their career up to the current race, excluding the current race itself
 * **`hosr730`**: Horse's strike rate in the last 2 years
 * **`hosr`**: Horse's career strike rate
 * **`homean4sprat`**: Horse's mean speed rating in the last 4 races
@@ -87,13 +88,16 @@ The following set of features used in the automated variable selection process f
 
 ### Jockey-related features
 
-* **`josr365`**: Jockey's strike rate in the last 365 days
+* **`joattend`**: Number of races a jockey has participated in up to the current race
+* **`josr365`**: Jockey's strike rate in the last 365 days before the current race
 * **`jowins365`**: Number of wins for the jockey in the last 365 days
+* **`joam`**: Indicates whether the jockey is an amateur rider (1) or a professional jockey (0)
 
 
 ### Trainer-related features
 
-* **`trsr`**: Trainer's strike rate
+* **`trattend`**: Number of races a trainer has participated in up to the current race
+* **`trmeanearn`**: Trainer's average earnings per race up to the current race
 
 
 ### Other features
@@ -174,8 +178,6 @@ agliv_races_gttable <- gt(agliv_races) %>%
 Additionally, races before 2019 are removed due to a significantly different takeout rate at that time. The data is further filtered to ensure data integrity by removing races with missing odds, homean4sprat values, or stall numbers. Lastly, races with dead heats are excluded and the data is sorted by date and time.
 
 
-
-
 ```{r, warning=FALSE}
 # Finding races with dead heats
 dead_heat_races <- races %>% 
@@ -235,6 +237,7 @@ data <- races %>%
 ```
 
 
+
 ## 3.3 Train and Test Split
 
 The dataset is split into a training set and a test set to evaluate the model's performance on unseen data. The training set includes races before January 1, 2021, while the test set contains races from that date onwards. Variable selection and training will be done on `train_data` and the performance of the model will be assessed on the `test_data`.
@@ -253,9 +256,10 @@ test_data <- data %>%
 ```
 
 
+
 # 4 Feature Selection Process via AIC
 
-The goal is to automate the feature selection process for the model. Looking for the feature combination which minimizes the Akaike information criterion (AIC) on the training set is one possible route in solving this problem. The `odds` variable should and will be left out at this stage, because the odds are a very strong predictor for the win probabilities of each horse. Inclusion of the odds in the variable selection process could mask important relations between the other features and the dependent variable (`win`).
+The goal is to automate the feature selection process for the model. Looking for the feature combination which minimizes the Akaike information criterion (AIC) on the training set is one possible route in solving this problem. The `odds` variable should and will be left out at this stage, because the odds are a very strong predictor for the win probabilities of each horse. Inclusion of the odds in the variable selection process could mask important relationships between the other features and the dependent variable (`win`).
 
 A conditional logistic regression model (`clogit`) is employed to predict the probability of a horse winning a race. This model is wellsuited for analyzing data with multiple observations within groups (horses within races) and allows us to account for the inherent  dependencies within each race. This approach is consistent with Bill Benter's strategy in horse race prediction. But in contrast to Benter's two-step approach to incorporate the public estimate (the odds), here a one-step approach is utilized.
 
@@ -298,7 +302,6 @@ for (i in 1:length(features)) {
     } 
   }
   
-  
   print(
     paste(
       "lowest_aic: ", as.character(lowest_aic), 
@@ -335,14 +338,15 @@ The `selected_features` together with the `odds` will be used in the next step t
 
 # 5 Training and Testing the Model
 
-
-
-
 ## 5.1 Incorporating the Odds and training the Model
 
- 
+This section focuses on incorporating the odds into the model and training the final conditional logistic regression model. Inclusion of the odds is done so with the aim to capture the collective wisdom of the betting market, which can potentially incorporate insider information and provide a more comprehensive assessment of each horse's chances.  
 
+The following steps outline the model training process:
 
+1. **Combine Features:** Combine the selected features with the `odds` variable to form the final set of predictors.
+2. **Construct Model Formula:** Create the model formula using the selected features and `strata(dg_raceid)` term to account for the grouped nature of the data.
+3. **Train Model:** Fit the conditional logistic regression model using the `clogit` function on the training data.
 
 ```{r}
 # final features: selected_features + odds
@@ -537,11 +541,9 @@ However, it's important to acknowledge the limitations of this analysis. The mod
 
 A significant challenge in employing this kind of betting strategy arises from the nature of parimutuel betting markets. Placing a large bet on a horse can cause its odds to drop, potentially eliminating any predicted advantage.
 
-The model could be improved by using k-fold cross-validation and an information criterion (e.g., AIC) for variable selection. Additionally, developing new and more sophisticated features or trying other methods like random forests could enhance its predictive power.
+The model could be improved by using cross-validation. Additionally, developing new and more sophisticated features or trying other methods like random forests could enhance its predictive power.
 
-```{r}
-AIC(final_model)
-```
+
 ```{r}
 
 ```
