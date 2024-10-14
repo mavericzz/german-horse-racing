@@ -30,9 +30,11 @@ racing market.
 
 Web-scraped data and a conditional logistic regression model will be
 leveraged to estimate the probability of each horse winning a race. The
-aim is to identify potential market inefficiencies and to assess the
-effectiveness of Benter’s approach in the context of German horse
-racing.
+predictors in the model will be automatically selected by identifying
+the set of potential predictors which minimizes the Akaike Information
+Criterion on the training dataset. The aim is to identify potential
+market inefficiencies and to assess the effectiveness of Benter’s
+approach in the context of German horse racing.
 
 ``` r
 library(data.table)
@@ -56,6 +58,12 @@ Betting in Germany occurs through two primary channels: bookmakers
 (fixed odds) and the totalizator (parimutuel). For this analysis, the
 focus lies exclusively on parimutuel odds.
 
+The german betting pool sizes are small compared to those in France and
+miniscule compared to Hong Kong. On a typical Sunday of racing in
+Germany the win pool will seldomly exceed 10,000€. In 2023 the betting
+turnover per race across all different pools (win, place, exacta,
+trifecta, etc.) averaged 30,396€.[^3]
+
 ## 1.2 Takeout
 
 In parimutuel betting, the track retains a commission known as takeout.
@@ -66,8 +74,17 @@ will concentrate solely on the win market.
 
 Inspired by Bolton and Chapman’s (1986) seminal paper, Bill Benter
 employed a conditional logistic regression model to predict horse racing
-outcomes in Hong Kong.[^3] His innovative approach incorporated the
-public’s estimate, as reflected in betting odds, into his model.[^4]
+outcomes in Hong Kong.[^4] His innovative approach incorporated the
+public’s estimate, as reflected in betting odds, into his model.[^5]
+
+Bill Benter employed a two-step-approach in incorporating the public
+estimate via the odds: At first he estimated his own fundamental model
+on one part of the training data. In the next step he estimated a new
+model with two predictors, namely the probabilities of his own model and
+the public estimate for the win probabilities of each horse, on the
+second part of the training data. For both steps he used a conditional
+logistic regression.
+
 Following a similar path, we’ll attempt to identify market
 inefficiencies within German horse racing.
 
@@ -137,15 +154,15 @@ literature, common sense, domain expertise in horse racing.
 # Define a vector to store the names of features used in the model
 features <- c(
   # Horse-related features
-  "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
+  "hoattend", "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
   "hofirstrace", "hodays", "draweffect_median", "gag_turf", "gagindicator_turf", 
-  "blinkers1sttime", "weight",
+  "blinkers1sttime", "weight", "hohcpclassdrop", "honetgag",
   
   # Jockey-related features
-  "josr365", "jowins365", "joam", 
+  "joattend", "josr365", "jowins365", "joam", 
   
   # Trainer-related features
-  "trsr"
+  "trattend", "trsr", "trmeanearn"
   
   # Other features
 
@@ -299,7 +316,6 @@ for (i in 1:length(features)) {
         "+ strata(dg_raceid)"
       )
     )
-    #print(formula)
     
     # Fit the model
     model <- clogit(formula, data = train_data)
@@ -314,7 +330,8 @@ for (i in 1:length(features)) {
   
   print(
     paste(
-      "lowest_aic: ", as.character(lowest_aic), " best aic: ", as.character(best_aic)
+      "lowest_aic: ", as.character(lowest_aic), 
+      " best aic: ", as.character(best_aic)
     )
   )
   if (lowest_aic == best_aic) {
@@ -348,21 +365,23 @@ for (i in 1:length(features)) {
     ## [1] "Iteration 4 : Selected feature: homean4sprat"
     ## [1] "lowest_aic:  2315.41197900729  best aic:  2328.63687320376"
     ## [1] "Iteration 5 : Selected feature: homeanearn365"
-    ## [1] "lowest_aic:  2306.21642628408  best aic:  2315.41197900729"
-    ## [1] "Iteration 6 : Selected feature: hodays"
-    ## [1] "lowest_aic:  2297.01256203822  best aic:  2306.21642628408"
+    ## [1] "lowest_aic:  2305.20329444784  best aic:  2315.41197900729"
+    ## [1] "Iteration 6 : Selected feature: trmeanearn"
+    ## [1] "lowest_aic:  2295.88122735889  best aic:  2305.20329444784"
     ## [1] "Iteration 7 : Selected feature: joam"
-    ## [1] "lowest_aic:  2291.78481535208  best aic:  2297.01256203822"
-    ## [1] "Iteration 8 : Selected feature: hosr730"
-    ## [1] "lowest_aic:  2288.51419336498  best aic:  2291.78481535208"
-    ## [1] "Iteration 9 : Selected feature: gagindicator_turf"
-    ## [1] "lowest_aic:  2286.59469016092  best aic:  2288.51419336498"
-    ## [1] "Iteration 10 : Selected feature: blinkers1sttime"
-    ## [1] "lowest_aic:  2285.59407407286  best aic:  2286.59469016092"
-    ## [1] "Iteration 11 : Selected feature: josr365"
-    ## [1] "lowest_aic:  2284.98199629471  best aic:  2285.59407407286"
-    ## [1] "Iteration 12 : Selected feature: holastsprat"
-    ## [1] "lowest_aic:  2284.98199629471  best aic:  2284.98199629471"
+    ## [1] "lowest_aic:  2287.1375222558  best aic:  2295.88122735889"
+    ## [1] "Iteration 8 : Selected feature: hodays"
+    ## [1] "lowest_aic:  2281.15656717304  best aic:  2287.1375222558"
+    ## [1] "Iteration 9 : Selected feature: hoattend"
+    ## [1] "lowest_aic:  2278.78227612658  best aic:  2281.15656717304"
+    ## [1] "Iteration 10 : Selected feature: hosr730"
+    ## [1] "lowest_aic:  2277.43296384337  best aic:  2278.78227612658"
+    ## [1] "Iteration 11 : Selected feature: blinkers1sttime"
+    ## [1] "lowest_aic:  2276.25779283767  best aic:  2277.43296384337"
+    ## [1] "Iteration 12 : Selected feature: josr365"
+    ## [1] "lowest_aic:  2275.73369004857  best aic:  2276.25779283767"
+    ## [1] "Iteration 13 : Selected feature: holastsprat"
+    ## [1] "lowest_aic:  2275.73369004857  best aic:  2275.73369004857"
 
 ``` r
 # Print the best model summary
@@ -371,47 +390,49 @@ summary(best_model)
 
     ## Call:
     ## coxph(formula = Surv(rep(1, 5690L), win) ~ trsr + jowins365 + 
-    ##     draweffect_median + homean4sprat + homeanearn365 + hodays + 
-    ##     joam + hosr730 + gagindicator_turf + blinkers1sttime + josr365 + 
+    ##     draweffect_median + homean4sprat + homeanearn365 + trmeanearn + 
+    ##     joam + hodays + hoattend + hosr730 + blinkers1sttime + josr365 + 
     ##     holastsprat + strata(dg_raceid), data = train_data, method = "exact")
     ## 
-    ##   n= 5630, number of events= 524 
-    ##    (60 observations deleted due to missingness)
+    ##   n= 5625, number of events= 524 
+    ##    (65 observations deleted due to missingness)
     ## 
-    ##                             coef  exp(coef)   se(coef)      z Pr(>|z|)    
-    ## trsr                   7.879e+00  2.642e+03  1.131e+00  6.966 3.26e-12 ***
-    ## jowins365              6.565e-03  1.007e+00  1.818e-03  3.611 0.000305 ***
-    ## draweffect_median     -1.568e-03  9.984e-01  1.869e-02 -0.084 0.933155    
-    ## homean4sprat           1.203e-02  1.012e+00  4.414e-03  2.726 0.006406 ** 
-    ## homeanearn365          8.338e-04  1.001e+00  1.809e-04  4.610 4.03e-06 ***
-    ## hodays                -2.684e-03  9.973e-01  9.445e-04 -2.841 0.004491 ** 
-    ## joam                  -7.258e-01  4.840e-01  2.208e-01 -3.287 0.001014 ** 
-    ## hosr730               -1.753e+00  1.733e-01  6.942e-01 -2.525 0.011582 *  
-    ## gagindicator_turfTRUE -3.045e-01  7.375e-01  1.481e-01 -2.056 0.039799 *  
-    ## blinkers1sttime       -3.404e-01  7.115e-01  1.789e-01 -1.903 0.057089 .  
-    ## josr365                1.131e+00  3.098e+00  6.059e-01  1.866 0.062022 .  
-    ## holastsprat            4.940e-03  1.005e+00  3.064e-03  1.612 0.106937    
+    ##                         coef  exp(coef)   se(coef)      z Pr(>|z|)    
+    ## trsr               4.650e+00  1.046e+02  1.543e+00  3.014 0.002578 ** 
+    ## jowins365          6.465e-03  1.006e+00  1.825e-03  3.543 0.000396 ***
+    ## draweffect_median -2.296e-03  9.977e-01  1.867e-02 -0.123 0.902114    
+    ## homean4sprat       1.214e-02  1.012e+00  4.410e-03  2.752 0.005917 ** 
+    ## homeanearn365      8.584e-04  1.001e+00  1.795e-04  4.783 1.73e-06 ***
+    ## trmeanearn         2.993e-04  1.000e+00  1.018e-04  2.940 0.003279 ** 
+    ## joam              -7.220e-01  4.858e-01  2.220e-01 -3.252 0.001147 ** 
+    ## hodays            -2.720e-03  9.973e-01  9.448e-04 -2.879 0.003986 ** 
+    ## hoattend          -6.306e-03  9.937e-01  2.565e-03 -2.458 0.013961 *  
+    ## hosr730           -1.451e+00  2.343e-01  6.872e-01 -2.112 0.034707 *  
+    ## blinkers1sttime   -3.135e-01  7.309e-01  1.789e-01 -1.753 0.079687 .  
+    ## josr365            1.153e+00  3.166e+00  6.001e-01  1.921 0.054789 .  
+    ## holastsprat        4.860e-03  1.005e+00  3.067e-03  1.585 0.113040    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ##                       exp(coef) exp(-coef) lower .95 upper .95
-    ## trsr                  2642.1684  0.0003785 287.85619 2.425e+04
-    ## jowins365                1.0066  0.9934562   1.00301 1.010e+00
-    ## draweffect_median        0.9984  1.0015688   0.96252 1.036e+00
-    ## homean4sprat             1.0121  0.9880383   1.00339 1.021e+00
-    ## homeanearn365            1.0008  0.9991666   1.00048 1.001e+00
-    ## hodays                   0.9973  1.0026874   0.99548 9.992e-01
-    ## joam                     0.4840  2.0662924   0.31394 7.461e-01
-    ## hosr730                  0.1733  5.7701250   0.04445 6.757e-01
-    ## gagindicator_turfTRUE    0.7375  1.3559406   0.55168 9.859e-01
-    ## blinkers1sttime          0.7115  1.4054436   0.50109 1.010e+00
-    ## josr365                  3.0976  0.3228320   0.94474 1.016e+01
-    ## holastsprat              1.0050  0.9950726   0.99893 1.011e+00
+    ##                   exp(coef) exp(-coef) lower .95 upper .95
+    ## trsr               104.6103   0.009559   5.08491 2152.1135
+    ## jowins365            1.0065   0.993556   1.00289    1.0101
+    ## draweffect_median    0.9977   1.002299   0.96186    1.0349
+    ## homean4sprat         1.0122   0.987936   1.00350    1.0210
+    ## homeanearn365        1.0009   0.999142   1.00051    1.0012
+    ## trmeanearn           1.0003   0.999701   1.00010    1.0005
+    ## joam                 0.4858   2.058600   0.31435    0.7506
+    ## hodays               0.9973   1.002724   0.99544    0.9991
+    ## hoattend             0.9937   1.006325   0.98873    0.9987
+    ## hosr730              0.2343   4.268478   0.06092    0.9009
+    ## blinkers1sttime      0.7309   1.368259   0.51469    1.0378
+    ## josr365              3.1661   0.315843   0.97662   10.2644
+    ## holastsprat          1.0049   0.995152   0.99885    1.0109
     ## 
-    ## Concordance= 0.681  (se = 0.014 )
-    ## Likelihood ratio test= 186.4  on 12 df,   p=<2e-16
-    ## Wald test            = 171.3  on 12 df,   p=<2e-16
-    ## Score (logrank) test = 182  on 12 df,   p=<2e-16
+    ## Concordance= 0.684  (se = 0.014 )
+    ## Likelihood ratio test= 196.7  on 13 df,   p=<2e-16
+    ## Wald test            = 183.8  on 13 df,   p=<2e-16
+    ## Score (logrank) test = 201.9  on 13 df,   p=<2e-16
 
 The `selected_features` together with the `odds` will be used in the
 next step to train our model.
@@ -427,10 +448,10 @@ final_features
 ```
 
     ##  [1] "trsr"              "jowins365"         "draweffect_median"
-    ##  [4] "homean4sprat"      "homeanearn365"     "hodays"           
-    ##  [7] "joam"              "hosr730"           "gagindicator_turf"
-    ## [10] "blinkers1sttime"   "josr365"           "holastsprat"      
-    ## [13] "odds"
+    ##  [4] "homean4sprat"      "homeanearn365"     "trmeanearn"       
+    ##  [7] "joam"              "hodays"            "hoattend"         
+    ## [10] "hosr730"           "blinkers1sttime"   "josr365"          
+    ## [13] "holastsprat"       "odds"
 
 ``` r
 # Construct the model formula using the selected features and the odds
@@ -447,7 +468,7 @@ print(final_model_formula)
 ```
 
     ## win ~ trsr + jowins365 + draweffect_median + homean4sprat + homeanearn365 + 
-    ##     hodays + joam + hosr730 + gagindicator_turf + blinkers1sttime + 
+    ##     trmeanearn + joam + hodays + hoattend + hosr730 + blinkers1sttime + 
     ##     josr365 + holastsprat + odds + strata(dg_raceid)
 
 ``` r
@@ -460,50 +481,52 @@ summary(final_model)
 
     ## Call:
     ## coxph(formula = Surv(rep(1, 5690L), win) ~ trsr + jowins365 + 
-    ##     draweffect_median + homean4sprat + homeanearn365 + hodays + 
-    ##     joam + hosr730 + gagindicator_turf + blinkers1sttime + josr365 + 
+    ##     draweffect_median + homean4sprat + homeanearn365 + trmeanearn + 
+    ##     joam + hodays + hoattend + hosr730 + blinkers1sttime + josr365 + 
     ##     holastsprat + odds + strata(dg_raceid), data = train_data, 
     ##     method = "exact")
     ## 
-    ##   n= 5630, number of events= 524 
-    ##    (60 observations deleted due to missingness)
+    ##   n= 5625, number of events= 524 
+    ##    (65 observations deleted due to missingness)
     ## 
-    ##                             coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## trsr                   3.986e+00  5.382e+01  1.199e+00   3.325 0.000884 ***
-    ## jowins365              1.411e-03  1.001e+00  1.923e-03   0.734 0.463198    
-    ## draweffect_median     -1.050e-03  9.990e-01  1.903e-02  -0.055 0.956007    
-    ## homean4sprat           5.786e-03  1.006e+00  4.515e-03   1.281 0.200069    
-    ## homeanearn365          7.005e-05  1.000e+00  2.111e-04   0.332 0.740066    
-    ## hodays                -2.642e-04  9.997e-01  8.327e-04  -0.317 0.751022    
-    ## joam                  -5.664e-01  5.676e-01  2.236e-01  -2.533 0.011315 *  
-    ## hosr730               -1.217e+00  2.962e-01  7.239e-01  -1.681 0.092800 .  
-    ## gagindicator_turfTRUE -2.906e-01  7.478e-01  1.497e-01  -1.941 0.052267 .  
-    ## blinkers1sttime       -3.004e-01  7.405e-01  1.803e-01  -1.666 0.095735 .  
-    ## josr365                7.977e-01  2.220e+00  6.810e-01   1.171 0.241495    
-    ## holastsprat            2.832e-03  1.003e+00  3.120e-03   0.908 0.364037    
-    ## odds                  -8.481e-02  9.187e-01  8.401e-03 -10.095  < 2e-16 ***
+    ##                         coef  exp(coef)   se(coef)      z Pr(>|z|)    
+    ## trsr               2.3205454 10.1812252  1.6325525  1.421   0.1552    
+    ## jowins365          0.0014794  1.0014805  0.0019251  0.769   0.4422    
+    ## draweffect_median -0.0012180  0.9987827  0.0190542 -0.064   0.9490    
+    ## homean4sprat       0.0059515  1.0059692  0.0045107  1.319   0.1870    
+    ## homeanearn365      0.0001358  1.0001358  0.0002060  0.659   0.5099    
+    ## trmeanearn         0.0001440  1.0001440  0.0001064  1.352   0.1762    
+    ## joam              -0.5629510  0.5695259  0.2244535 -2.508   0.0121 *  
+    ## hodays            -0.0003929  0.9996072  0.0008411 -0.467   0.6404    
+    ## hoattend          -0.0054027  0.9946119  0.0026642 -2.028   0.0426 *  
+    ## hosr730           -1.0831422  0.3385301  0.7138791 -1.517   0.1292    
+    ## blinkers1sttime   -0.2781344  0.7571951  0.1805649 -1.540   0.1235    
+    ## josr365            0.8297855  2.2928270  0.6758248  1.228   0.2195    
+    ## holastsprat        0.0027516  1.0027554  0.0031227  0.881   0.3782    
+    ## odds              -0.0825744  0.9207429  0.0083933 -9.838   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ##                       exp(coef) exp(-coef) lower .95 upper .95
-    ## trsr                    53.8227    0.01858   5.13601  564.0346
-    ## jowins365                1.0014    0.99859   0.99764    1.0052
-    ## draweffect_median        0.9990    1.00105   0.96238    1.0369
-    ## homean4sprat             1.0058    0.99423   0.99694    1.0147
-    ## homeanearn365            1.0001    0.99993   0.99966    1.0005
-    ## hodays                   0.9997    1.00026   0.99811    1.0014
-    ## joam                     0.5676    1.76184   0.36618    0.8798
-    ## hosr730                  0.2962    3.37638   0.07167    1.2240
-    ## gagindicator_turfTRUE    0.7478    1.33719   0.55766    1.0029
-    ## blinkers1sttime          0.7405    1.35044   0.52002    1.0545
-    ## josr365                  2.2203    0.45039   0.58443    8.4353
-    ## holastsprat              1.0028    0.99717   0.99672    1.0090
-    ## odds                     0.9187    1.08852   0.90368    0.9339
+    ##                   exp(coef) exp(-coef) lower .95 upper .95
+    ## trsr                10.1812    0.09822   0.41512  249.7073
+    ## jowins365            1.0015    0.99852   0.99771    1.0053
+    ## draweffect_median    0.9988    1.00122   0.96217    1.0368
+    ## homean4sprat         1.0060    0.99407   0.99711    1.0149
+    ## homeanearn365        1.0001    0.99986   0.99973    1.0005
+    ## trmeanearn           1.0001    0.99986   0.99994    1.0004
+    ## joam                 0.5695    1.75585   0.36682    0.8842
+    ## hodays               0.9996    1.00039   0.99796    1.0013
+    ## hoattend             0.9946    1.00542   0.98943    0.9998
+    ## hosr730              0.3385    2.95395   0.08355    1.3717
+    ## blinkers1sttime      0.7572    1.32066   0.53151    1.0787
+    ## josr365              2.2928    0.43614   0.60969    8.6225
+    ## holastsprat          1.0028    0.99725   0.99664    1.0089
+    ## odds                 0.9207    1.08608   0.90572    0.9360
     ## 
-    ## Concordance= 0.738  (se = 0.013 )
-    ## Likelihood ratio test= 353.1  on 13 df,   p=<2e-16
-    ## Wald test            = 202.7  on 13 df,   p=<2e-16
-    ## Score (logrank) test = 229.9  on 13 df,   p=<2e-16
+    ## Concordance= 0.739  (se = 0.013 )
+    ## Likelihood ratio test= 354.8  on 14 df,   p=<2e-16
+    ## Wald test            = 208.4  on 14 df,   p=<2e-16
+    ## Score (logrank) test = 245.6  on 14 df,   p=<2e-16
 
 The estimated coefficients are extracted from the model summary for use
 in subsequent predictions on the test data.
@@ -583,12 +606,12 @@ cat(
 )
 ```
 
-    ## Total number of bets: 945 
-    ##  Total earnings: 58.6
+    ## Total number of bets: 912 
+    ##  Total earnings: 91.2
 
-Over the test period, our strategy identified 945 potentially profitable
+Over the test period, our strategy identified 912 potentially profitable
 bets. Assuming a uniform bet size of €1.00, the strategy would have
-generated cumulative earnings of €58.6.
+generated cumulative earnings of €91.2.
 
 ## 5.3 Outperforming the Market or just a few lucky Wins?
 
@@ -638,7 +661,9 @@ takeout_rate <- 0.15
 expected_loss <- total_bet_amount * takeout_rate
 
 # Perform bootstrapping for actual earnings
-boot_results_earnings <- boot::boot(data = bets, statistic = calculate_earnings, R = n_bootstraps)
+boot_results_earnings <- boot::boot(
+  data = bets, statistic = calculate_earnings, R = n_bootstraps
+)
 
 # Extract the bootstrap distribution of earnings
 boot_earnings <- boot_results_earnings$t
@@ -654,14 +679,14 @@ cat(
 )
 ```
 
-    ## Observed Earnings: 58.6 
-    ##  Expected Loss (with 15% takeout): 141.75 
-    ##  p-value: 0.0186
+    ## Observed Earnings: 91.2 
+    ##  Expected Loss (with 15% takeout): 136.8 
+    ##  p-value: 0.0066
 
-The bootstrap hypothesis test yields a p-value of 0.0186. This p-value
+The bootstrap hypothesis test yields a p-value of 0.0066. This p-value
 is less than the commonly used significance level of 0.05.
 
-The low p-value (0.0186) indicates that the observed earnings of €58.6
+The low p-value (0.0066) indicates that the observed earnings of €91.2
 are statistically significantly higher than what one would expect if the
 betting strategy’s performance were purely due to chance, considering
 the 15% takeout.
@@ -713,6 +738,12 @@ information criterion (e.g., AIC) for variable selection. Additionally,
 developing new and more sophisticated features or trying other methods
 like random forests could enhance its predictive power.
 
+``` r
+AIC(final_model)
+```
+
+    ## [1] 2119.723
+
 [^1]: For a more detailed overview of the different types of horse
     racing, see the [Wikipedia
     article](https://en.wikipedia.org/wiki/Horse_racing#Types_of_horse_racing).
@@ -720,10 +751,13 @@ like random forests could enhance its predictive power.
 [^2]: For more information on parimutuel betting, see the [Wikipedia
     article](https://en.wikipedia.org/wiki/Parimutuel_betting).
 
-[^3]: See Bolton, R.N., & Chapman, R.G.(1986). Searching for positive
+[^3]: As reported by
+    [galopponline.de](https://galopponline.de/wetten/wettumsatz-2023-all-time-high-bei-umsatz-je-rennen/#:~:text=Deutscher%20Galopp%20sagt%20dazu%3A%20%E2%80%9EWenngleich,einen%20Rekordwert%20von%2030.396%20Euro.).
+
+[^4]: See Bolton, R.N., & Chapman, R.G.(1986). Searching for positive
     returns at the track: A multinomial logistic regression model for
     handicapping horse races. Management Science, 32(8), pp. 1040-1060.
 
-[^4]: See Benter, W. (1994). Computer-based horse race handicapping and
+[^5]: See Benter, W. (1994). Computer-based horse race handicapping and
     wagering systems: A report. In: Efficiency of Racetrack Betting
     Markets, pp. 183-198
