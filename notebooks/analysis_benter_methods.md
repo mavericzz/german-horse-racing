@@ -118,6 +118,9 @@ literature, common sense, domain expertise in horse racing.
 
 ### Horse-related features
 
+- **`hoattend`**: Horse’s experience measured in number of races the
+  horse has attended over their career up to the current race, excluding
+  the current race itself
 - **`hosr730`**: Horse’s strike rate in the last 2 years
 - **`hosr`**: Horse’s career strike rate
 - **`homean4sprat`**: Horse’s mean speed rating in the last 4 races
@@ -126,46 +129,53 @@ literature, common sense, domain expertise in horse racing.
 - **`holastsprat`**: Horse’s last speed rating
 - **`hofirstrace`**: Indicator if it’s the horse’s first race
 - **`hodays`**: Number of days since the horse’s last race
-- **`draweffect_median`**: The median estimated disadvantage (in terms
-  of lengths) associated with the horse’s starting stall compared to the
-  innermost stall
-- **`gag`**: Horse’s handicap rating before the race
-- **`gagindicator`**: Takes the value 1 if the horse’s current handicap
-  rating is lower than its rating at the time of its most recent win, 0
-  otherwise
+- **`gag_turf`**: Horse’s handicap rating on turf before the race
+- **`gagindicator_turf`**: Takes the value 1 if the horse’s current
+  handicap rating on turf is lower than its rating at the time of its
+  most recent win on turf, 0 otherwise
 - **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for
   the first time
 - **`weight`**: Weight carried by the horse
 
 ### Jockey-related features
 
-- **`josr365`**: Jockey’s strike rate in the last 365 days
+- **`joattend`**: Number of races a jockey has participated in up to the
+  current race
+- **`josr365`**: Jockey’s strike rate in the last 365 days before the
+  current race
 - **`jowins365`**: Number of wins for the jockey in the last 365 days
+- **`joam`**: Indicates whether the jockey is an amateur rider (1) or a
+  professional jockey (0)
 
 ### Trainer-related features
 
-- **`trsr`**: Trainer’s strike rate
+- **`trattend`**: Number of races a trainer has participated in up to
+  the current race
+- **`trmeanearn`**: Trainer’s average earnings per race up to the
+  current race
 
 ### Other features
 
-- **`odds`**: Betting odds for the horse
+- **`draweffect_median`**: The median estimated disadvantage (in terms
+  of lengths) associated with the horse’s starting stall compared to the
+  innermost stall
 
 ``` r
 # Define a vector to store the names of features used in the model
 features <- c(
   # Horse-related features
   "hoattend", "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
-  "hofirstrace", "hodays", "draweffect_median", "gag_turf", "gagindicator_turf", 
-  "blinkers1sttime", "weight", "hohcpclassdrop", "honetgag",
+  "hofirstrace", "hodays", "gag_turf", "gagindicator_turf", 
+  "blinkers1sttime", "weight", 
   
   # Jockey-related features
   "joattend", "josr365", "jowins365", "joam", 
   
   # Trainer-related features
-  "trattend", "trsr", "trmeanearn"
+  "trattend", "trmeanearn",
   
   # Other features
-
+  "draweffect_median"
 )
 ```
 
@@ -275,7 +285,7 @@ information criterion (AIC) on the training set is one possible route in
 solving this problem. The `odds` variable should and will be left out at
 this stage, because the odds are a very strong predictor for the win
 probabilities of each horse. Inclusion of the odds in the variable
-selection process could mask important relations between the other
+selection process could mask important relationships between the other
 features and the dependent variable (`win`).
 
 A conditional logistic regression model (`clogit`) is employed to
@@ -327,7 +337,6 @@ for (i in 1:length(features)) {
     } 
   }
   
-  
   print(
     paste(
       "lowest_aic: ", as.character(lowest_aic), 
@@ -355,33 +364,31 @@ for (i in 1:length(features)) {
 }
 ```
 
-    ## [1] "lowest_aic:  2412.54249047461  best aic:  Inf"
-    ## [1] "Iteration 1 : Selected feature: trsr"
-    ## [1] "lowest_aic:  2379.76113729251  best aic:  2412.54249047461"
+    ## [1] "lowest_aic:  2415.10300919911  best aic:  Inf"
+    ## [1] "Iteration 1 : Selected feature: trmeanearn"
+    ## [1] "lowest_aic:  2379.40653470769  best aic:  2415.10300919911"
     ## [1] "Iteration 2 : Selected feature: jowins365"
-    ## [1] "lowest_aic:  2353.16303918151  best aic:  2379.76113729251"
-    ## [1] "Iteration 3 : Selected feature: draweffect_median"
-    ## [1] "lowest_aic:  2328.63687320376  best aic:  2353.16303918151"
-    ## [1] "Iteration 4 : Selected feature: homean4sprat"
-    ## [1] "lowest_aic:  2315.41197900729  best aic:  2328.63687320376"
-    ## [1] "Iteration 5 : Selected feature: homeanearn365"
-    ## [1] "lowest_aic:  2305.20329444784  best aic:  2315.41197900729"
-    ## [1] "Iteration 6 : Selected feature: trmeanearn"
-    ## [1] "lowest_aic:  2295.88122735889  best aic:  2305.20329444784"
-    ## [1] "Iteration 7 : Selected feature: joam"
-    ## [1] "lowest_aic:  2287.1375222558  best aic:  2295.88122735889"
-    ## [1] "Iteration 8 : Selected feature: hodays"
-    ## [1] "lowest_aic:  2281.15656717304  best aic:  2287.1375222558"
-    ## [1] "Iteration 9 : Selected feature: hoattend"
-    ## [1] "lowest_aic:  2278.78227612658  best aic:  2281.15656717304"
+    ## [1] "lowest_aic:  2350.75053213177  best aic:  2379.40653470769"
+    ## [1] "Iteration 3 : Selected feature: homeanearn365"
+    ## [1] "lowest_aic:  2327.4462428047  best aic:  2350.75053213177"
+    ## [1] "Iteration 4 : Selected feature: draweffect_median"
+    ## [1] "lowest_aic:  2312.1138640114  best aic:  2327.4462428047"
+    ## [1] "Iteration 5 : Selected feature: homean4sprat"
+    ## [1] "lowest_aic:  2302.69206367201  best aic:  2312.1138640114"
+    ## [1] "Iteration 6 : Selected feature: joam"
+    ## [1] "lowest_aic:  2294.05618950646  best aic:  2302.69206367201"
+    ## [1] "Iteration 7 : Selected feature: hodays"
+    ## [1] "lowest_aic:  2286.47470899281  best aic:  2294.05618950646"
+    ## [1] "Iteration 8 : Selected feature: hoattend"
+    ## [1] "lowest_aic:  2284.64224749249  best aic:  2286.47470899281"
+    ## [1] "Iteration 9 : Selected feature: josr365"
+    ## [1] "lowest_aic:  2283.71627546938  best aic:  2284.64224749249"
     ## [1] "Iteration 10 : Selected feature: hosr730"
-    ## [1] "lowest_aic:  2277.43296384337  best aic:  2278.78227612658"
+    ## [1] "lowest_aic:  2283.07253414899  best aic:  2283.71627546938"
     ## [1] "Iteration 11 : Selected feature: blinkers1sttime"
-    ## [1] "lowest_aic:  2276.25779283767  best aic:  2277.43296384337"
-    ## [1] "Iteration 12 : Selected feature: josr365"
-    ## [1] "lowest_aic:  2275.73369004857  best aic:  2276.25779283767"
-    ## [1] "Iteration 13 : Selected feature: holastsprat"
-    ## [1] "lowest_aic:  2275.73369004857  best aic:  2275.73369004857"
+    ## [1] "lowest_aic:  2282.56727016848  best aic:  2283.07253414899"
+    ## [1] "Iteration 12 : Selected feature: holastsprat"
+    ## [1] "lowest_aic:  2282.56727016848  best aic:  2282.56727016848"
 
 ``` r
 # Print the best model summary
@@ -389,50 +396,48 @@ summary(best_model)
 ```
 
     ## Call:
-    ## coxph(formula = Surv(rep(1, 5690L), win) ~ trsr + jowins365 + 
-    ##     draweffect_median + homean4sprat + homeanearn365 + trmeanearn + 
-    ##     joam + hodays + hoattend + hosr730 + blinkers1sttime + josr365 + 
+    ## coxph(formula = Surv(rep(1, 5690L), win) ~ trmeanearn + jowins365 + 
+    ##     homeanearn365 + draweffect_median + homean4sprat + joam + 
+    ##     hodays + hoattend + josr365 + hosr730 + blinkers1sttime + 
     ##     holastsprat + strata(dg_raceid), data = train_data, method = "exact")
     ## 
     ##   n= 5625, number of events= 524 
     ##    (65 observations deleted due to missingness)
     ## 
     ##                         coef  exp(coef)   se(coef)      z Pr(>|z|)    
-    ## trsr               4.650e+00  1.046e+02  1.543e+00  3.014 0.002578 ** 
-    ## jowins365          6.465e-03  1.006e+00  1.825e-03  3.543 0.000396 ***
-    ## draweffect_median -2.296e-03  9.977e-01  1.867e-02 -0.123 0.902114    
-    ## homean4sprat       1.214e-02  1.012e+00  4.410e-03  2.752 0.005917 ** 
-    ## homeanearn365      8.584e-04  1.001e+00  1.795e-04  4.783 1.73e-06 ***
-    ## trmeanearn         2.993e-04  1.000e+00  1.018e-04  2.940 0.003279 ** 
-    ## joam              -7.220e-01  4.858e-01  2.220e-01 -3.252 0.001147 ** 
-    ## hodays            -2.720e-03  9.973e-01  9.448e-04 -2.879 0.003986 ** 
-    ## hoattend          -6.306e-03  9.937e-01  2.565e-03 -2.458 0.013961 *  
-    ## hosr730           -1.451e+00  2.343e-01  6.872e-01 -2.112 0.034707 *  
-    ## blinkers1sttime   -3.135e-01  7.309e-01  1.789e-01 -1.753 0.079687 .  
-    ## josr365            1.153e+00  3.166e+00  6.001e-01  1.921 0.054789 .  
-    ## holastsprat        4.860e-03  1.005e+00  3.067e-03  1.585 0.113040    
+    ## trmeanearn         5.081e-04  1.001e+00  7.321e-05  6.939 3.94e-12 ***
+    ## jowins365          6.851e-03  1.007e+00  1.825e-03  3.755 0.000173 ***
+    ## homeanearn365      8.465e-04  1.001e+00  1.797e-04  4.711 2.46e-06 ***
+    ## draweffect_median -2.668e-03  9.973e-01  1.860e-02 -0.143 0.885946    
+    ## homean4sprat       1.223e-02  1.012e+00  4.396e-03  2.781 0.005413 ** 
+    ## joam              -7.256e-01  4.840e-01  2.226e-01 -3.260 0.001112 ** 
+    ## hodays            -2.690e-03  9.973e-01  9.404e-04 -2.861 0.004224 ** 
+    ## hoattend          -6.998e-03  9.930e-01  2.554e-03 -2.739 0.006154 ** 
+    ## josr365            1.235e+00  3.438e+00  5.935e-01  2.081 0.037442 *  
+    ## hosr730           -1.187e+00  3.053e-01  6.817e-01 -1.741 0.081763 .  
+    ## blinkers1sttime   -2.805e-01  7.554e-01  1.781e-01 -1.575 0.115210    
+    ## holastsprat        4.820e-03  1.005e+00  3.053e-03  1.579 0.114395    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##                   exp(coef) exp(-coef) lower .95 upper .95
-    ## trsr               104.6103   0.009559   5.08491 2152.1135
-    ## jowins365            1.0065   0.993556   1.00289    1.0101
-    ## draweffect_median    0.9977   1.002299   0.96186    1.0349
-    ## homean4sprat         1.0122   0.987936   1.00350    1.0210
-    ## homeanearn365        1.0009   0.999142   1.00051    1.0012
-    ## trmeanearn           1.0003   0.999701   1.00010    1.0005
-    ## joam                 0.4858   2.058600   0.31435    0.7506
-    ## hodays               0.9973   1.002724   0.99544    0.9991
-    ## hoattend             0.9937   1.006325   0.98873    0.9987
-    ## hosr730              0.2343   4.268478   0.06092    0.9009
-    ## blinkers1sttime      0.7309   1.368259   0.51469    1.0378
-    ## josr365              3.1661   0.315843   0.97662   10.2644
-    ## holastsprat          1.0049   0.995152   0.99885    1.0109
+    ## trmeanearn           1.0005     0.9995   1.00036    1.0007
+    ## jowins365            1.0069     0.9932   1.00328    1.0105
+    ## homeanearn365        1.0008     0.9992   1.00049    1.0012
+    ## draweffect_median    0.9973     1.0027   0.96163    1.0344
+    ## homean4sprat         1.0123     0.9878   1.00362    1.0211
+    ## joam                 0.4840     2.0660   0.31291    0.7487
+    ## hodays               0.9973     1.0027   0.99548    0.9992
+    ## hoattend             0.9930     1.0070   0.98807    0.9980
+    ## josr365              3.4382     0.2908   1.07442   11.0027
+    ## hosr730              0.3053     3.2758   0.08024    1.1613
+    ## blinkers1sttime      0.7554     1.3238   0.53288    1.0709
+    ## holastsprat          1.0048     0.9952   0.99884    1.0109
     ## 
-    ## Concordance= 0.684  (se = 0.014 )
-    ## Likelihood ratio test= 196.7  on 13 df,   p=<2e-16
-    ## Wald test            = 183.8  on 13 df,   p=<2e-16
-    ## Score (logrank) test = 201.9  on 13 df,   p=<2e-16
+    ## Concordance= 0.682  (se = 0.015 )
+    ## Likelihood ratio test= 187.9  on 12 df,   p=<2e-16
+    ## Wald test            = 176.5  on 12 df,   p=<2e-16
+    ## Score (logrank) test = 197.8  on 12 df,   p=<2e-16
 
 The `selected_features` together with the `odds` will be used in the
 next step to train our model.
@@ -441,17 +446,33 @@ next step to train our model.
 
 ## 5.1 Incorporating the Odds and training the Model
 
+This section focuses on incorporating the odds into the model and
+training the final conditional logistic regression model. Inclusion of
+the odds is done so with the aim to capture the collective wisdom of the
+betting market, which can potentially incorporate insider information
+and provide a more comprehensive assessment of each horse’s chances.
+
+The following steps outline the model training process:
+
+1.  **Combine Features:** Combine the selected features with the `odds`
+    variable to form the final set of predictors.
+2.  **Construct Model Formula:** Create the model formula using the
+    selected features and `strata(dg_raceid)` term to account for the
+    grouped nature of the data.
+3.  **Train Model:** Fit the conditional logistic regression model using
+    the `clogit` function on the training data.
+
 ``` r
 # final features: selected_features + odds
 final_features <- c(selected_features, "odds")
 final_features
 ```
 
-    ##  [1] "trsr"              "jowins365"         "draweffect_median"
-    ##  [4] "homean4sprat"      "homeanearn365"     "trmeanearn"       
-    ##  [7] "joam"              "hodays"            "hoattend"         
-    ## [10] "hosr730"           "blinkers1sttime"   "josr365"          
-    ## [13] "holastsprat"       "odds"
+    ##  [1] "trmeanearn"        "jowins365"         "homeanearn365"    
+    ##  [4] "draweffect_median" "homean4sprat"      "joam"             
+    ##  [7] "hodays"            "hoattend"          "josr365"          
+    ## [10] "hosr730"           "blinkers1sttime"   "holastsprat"      
+    ## [13] "odds"
 
 ``` r
 # Construct the model formula using the selected features and the odds
@@ -467,9 +488,9 @@ final_model_formula <- as.formula(
 print(final_model_formula)
 ```
 
-    ## win ~ trsr + jowins365 + draweffect_median + homean4sprat + homeanearn365 + 
-    ##     trmeanearn + joam + hodays + hoattend + hosr730 + blinkers1sttime + 
-    ##     josr365 + holastsprat + odds + strata(dg_raceid)
+    ## win ~ trmeanearn + jowins365 + homeanearn365 + draweffect_median + 
+    ##     homean4sprat + joam + hodays + hoattend + josr365 + hosr730 + 
+    ##     blinkers1sttime + holastsprat + odds + strata(dg_raceid)
 
 ``` r
 # Fit the conditional logistic regression model
@@ -480,9 +501,9 @@ summary(final_model)
 ```
 
     ## Call:
-    ## coxph(formula = Surv(rep(1, 5690L), win) ~ trsr + jowins365 + 
-    ##     draweffect_median + homean4sprat + homeanearn365 + trmeanearn + 
-    ##     joam + hodays + hoattend + hosr730 + blinkers1sttime + josr365 + 
+    ## coxph(formula = Surv(rep(1, 5690L), win) ~ trmeanearn + jowins365 + 
+    ##     homeanearn365 + draweffect_median + homean4sprat + joam + 
+    ##     hodays + hoattend + josr365 + hosr730 + blinkers1sttime + 
     ##     holastsprat + odds + strata(dg_raceid), data = train_data, 
     ##     method = "exact")
     ## 
@@ -490,43 +511,41 @@ summary(final_model)
     ##    (65 observations deleted due to missingness)
     ## 
     ##                         coef  exp(coef)   se(coef)      z Pr(>|z|)    
-    ## trsr               2.3205454 10.1812252  1.6325525  1.421   0.1552    
-    ## jowins365          0.0014794  1.0014805  0.0019251  0.769   0.4422    
-    ## draweffect_median -0.0012180  0.9987827  0.0190542 -0.064   0.9490    
-    ## homean4sprat       0.0059515  1.0059692  0.0045107  1.319   0.1870    
-    ## homeanearn365      0.0001358  1.0001358  0.0002060  0.659   0.5099    
-    ## trmeanearn         0.0001440  1.0001440  0.0001064  1.352   0.1762    
-    ## joam              -0.5629510  0.5695259  0.2244535 -2.508   0.0121 *  
-    ## hodays            -0.0003929  0.9996072  0.0008411 -0.467   0.6404    
-    ## hoattend          -0.0054027  0.9946119  0.0026642 -2.028   0.0426 *  
-    ## hosr730           -1.0831422  0.3385301  0.7138791 -1.517   0.1292    
-    ## blinkers1sttime   -0.2781344  0.7571951  0.1805649 -1.540   0.1235    
-    ## josr365            0.8297855  2.2928270  0.6758248  1.228   0.2195    
-    ## holastsprat        0.0027516  1.0027554  0.0031227  0.881   0.3782    
-    ## odds              -0.0825744  0.9207429  0.0083933 -9.838   <2e-16 ***
+    ## trmeanearn         2.452e-04  1.000e+00  7.797e-05  3.145  0.00166 ** 
+    ## jowins365          1.597e-03  1.002e+00  1.925e-03  0.829  0.40687    
+    ## homeanearn365      1.185e-04  1.000e+00  2.063e-04  0.574  0.56565    
+    ## draweffect_median -1.339e-03  9.987e-01  1.903e-02 -0.070  0.94389    
+    ## homean4sprat       5.949e-03  1.006e+00  4.504e-03  1.321  0.18659    
+    ## joam              -5.613e-01  5.705e-01  2.246e-01 -2.499  0.01245 *  
+    ## hodays            -3.726e-04  9.996e-01  8.250e-04 -0.452  0.65153    
+    ## hoattend          -5.763e-03  9.943e-01  2.652e-03 -2.173  0.02979 *  
+    ## josr365            8.797e-01  2.410e+00  6.709e-01  1.311  0.18979    
+    ## hosr730           -9.433e-01  3.893e-01  7.072e-01 -1.334  0.18227    
+    ## blinkers1sttime   -2.586e-01  7.721e-01  1.799e-01 -1.438  0.15055    
+    ## holastsprat        2.634e-03  1.003e+00  3.114e-03  0.846  0.39760    
+    ## odds              -8.347e-02  9.199e-01  8.374e-03 -9.968  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##                   exp(coef) exp(-coef) lower .95 upper .95
-    ## trsr                10.1812    0.09822   0.41512  249.7073
-    ## jowins365            1.0015    0.99852   0.99771    1.0053
-    ## draweffect_median    0.9988    1.00122   0.96217    1.0368
-    ## homean4sprat         1.0060    0.99407   0.99711    1.0149
-    ## homeanearn365        1.0001    0.99986   0.99973    1.0005
-    ## trmeanearn           1.0001    0.99986   0.99994    1.0004
-    ## joam                 0.5695    1.75585   0.36682    0.8842
-    ## hodays               0.9996    1.00039   0.99796    1.0013
-    ## hoattend             0.9946    1.00542   0.98943    0.9998
-    ## hosr730              0.3385    2.95395   0.08355    1.3717
-    ## blinkers1sttime      0.7572    1.32066   0.53151    1.0787
-    ## josr365              2.2928    0.43614   0.60969    8.6225
-    ## holastsprat          1.0028    0.99725   0.99664    1.0089
-    ## odds                 0.9207    1.08608   0.90572    0.9360
+    ## trmeanearn           1.0002     0.9998   1.00009    1.0004
+    ## jowins365            1.0016     0.9984   0.99783    1.0054
+    ## homeanearn365        1.0001     0.9999   0.99971    1.0005
+    ## draweffect_median    0.9987     1.0013   0.96211    1.0366
+    ## homean4sprat         1.0060     0.9941   0.99712    1.0149
+    ## joam                 0.5705     1.7530   0.36732    0.8860
+    ## hodays               0.9996     1.0004   0.99801    1.0012
+    ## hoattend             0.9943     1.0058   0.98910    0.9994
+    ## josr365              2.4103     0.4149   0.64709    8.9777
+    ## hosr730              0.3893     2.5684   0.09735    1.5571
+    ## blinkers1sttime      0.7721     1.2951   0.54274    1.0985
+    ## holastsprat          1.0026     0.9974   0.99654    1.0088
+    ## odds                 0.9199     1.0871   0.90494    0.9351
     ## 
-    ## Concordance= 0.739  (se = 0.013 )
-    ## Likelihood ratio test= 354.8  on 14 df,   p=<2e-16
-    ## Wald test            = 208.4  on 14 df,   p=<2e-16
-    ## Score (logrank) test = 245.6  on 14 df,   p=<2e-16
+    ## Concordance= 0.738  (se = 0.013 )
+    ## Likelihood ratio test= 352.8  on 13 df,   p=<2e-16
+    ## Wald test            = 206.5  on 13 df,   p=<2e-16
+    ## Score (logrank) test = 244.4  on 13 df,   p=<2e-16
 
 The estimated coefficients are extracted from the model summary for use
 in subsequent predictions on the test data.
@@ -606,12 +625,12 @@ cat(
 )
 ```
 
-    ## Total number of bets: 912 
-    ##  Total earnings: 91.2
+    ## Total number of bets: 914 
+    ##  Total earnings: 54.9
 
-Over the test period, our strategy identified 912 potentially profitable
+Over the test period, our strategy identified 914 potentially profitable
 bets. Assuming a uniform bet size of €1.00, the strategy would have
-generated cumulative earnings of €91.2.
+generated cumulative earnings of €54.9.
 
 ## 5.3 Outperforming the Market or just a few lucky Wins?
 
@@ -679,14 +698,14 @@ cat(
 )
 ```
 
-    ## Observed Earnings: 91.2 
-    ##  Expected Loss (with 15% takeout): 136.8 
-    ##  p-value: 0.0066
+    ## Observed Earnings: 54.9 
+    ##  Expected Loss (with 15% takeout): 137.1 
+    ##  p-value: 0.0218
 
-The bootstrap hypothesis test yields a p-value of 0.0066. This p-value
+The bootstrap hypothesis test yields a p-value of 0.0218. This p-value
 is less than the commonly used significance level of 0.05.
 
-The low p-value (0.0066) indicates that the observed earnings of €91.2
+The low p-value (0.0218) indicates that the observed earnings of €54.9
 are statistically significantly higher than what one would expect if the
 betting strategy’s performance were purely due to chance, considering
 the 15% takeout.
@@ -733,16 +752,9 @@ arises from the nature of parimutuel betting markets. Placing a large
 bet on a horse can cause its odds to drop, potentially eliminating any
 predicted advantage.
 
-The model could be improved by using k-fold cross-validation and an
-information criterion (e.g., AIC) for variable selection. Additionally,
+The model could be improved by using cross-validation. Additionally,
 developing new and more sophisticated features or trying other methods
 like random forests could enhance its predictive power.
-
-``` r
-AIC(final_model)
-```
-
-    ## [1] 2119.723
 
 [^1]: For a more detailed overview of the different types of horse
     racing, see the [Wikipedia
