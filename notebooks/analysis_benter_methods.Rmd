@@ -11,7 +11,7 @@ output:
 
 This notebook explores the application of quantitative methods, inspired by the legendary horse racing bettor Bill Benter, to the German horse racing market.
 
-Web-scraped data and a conditional logistic regression model will be leveraged to estimate the probability of each horse winning a race. The aim is to identify potential market inefficiencies and to assess the effectiveness of Benter's approach in the context of German horse racing.
+Web-scraped data and a conditional logistic regression model will be leveraged to estimate the probability of each horse winning a race. The predictors in the model will be automatically selected by identifying the set of potential predictors which minimizes the Akaike Information Criterion on the training dataset. The aim is to identify potential market inefficiencies and to assess the effectiveness of Benter's approach in the context of German horse racing.
 
 ```{r, message=FALSE, warning=FALSE}
 library(data.table)
@@ -33,8 +33,11 @@ Germany features two primary types of horse racing: Harness racing and flat raci
 
 Betting plays a crucial role in German horse racing, as a portion of the prize money is funded by the parimutuel betting operator's profits.[^parimutuel] Betting in Germany occurs through two primary channels: bookmakers (fixed odds) and the totalizator (parimutuel). For this analysis, the focus lies exclusively on parimutuel odds.
 
+The german betting pool sizes are small compared to those in France and miniscule compared to Hong Kong. On a typical Sunday of racing in Germany the win pool will seldomly exceed 10,000€. In 2023 the betting turnover per race across all different pools (win, place, exacta, trifecta, etc.) averaged 30,396€.[^turnover]
+
 [^parimutuel]: For more information on parimutuel betting, see the [Wikipedia article](https://en.wikipedia.org/wiki/Parimutuel_betting).
 
+[^turnover]: As reported by [galopponline.de](https://galopponline.de/wetten/wettumsatz-2023-all-time-high-bei-umsatz-je-rennen/#:~:text=Deutscher%20Galopp%20sagt%20dazu%3A%20%E2%80%9EWenngleich,einen%20Rekordwert%20von%2030.396%20Euro.). 
 
 ## 1.2 Takeout
 
@@ -44,7 +47,11 @@ In parimutuel betting, the track retains a commission known as takeout. In Germa
 
 # 2 Bill Benter's Approach
 
-Inspired by Bolton and Chapman's (1986) seminal paper, Bill Benter employed a conditional logistic regression model to predict horse racing outcomes in Hong Kong.^[See Bolton, R.N., & Chapman, R.G.(1986). Searching for  positive returns at the track: A multinomial logistic regression model for handicapping horse races. Management Science, 32(8), pp. 1040-1060.] His innovative approach incorporated the public's estimate, as reflected in betting odds, into his model.^[See Benter, W. (1994). Computer-based horse race handicapping and wagering systems: A report. In: Efficiency of Racetrack Betting Markets, pp. 183-198] Following a similar path, we'll attempt to identify market inefficiencies within German horse racing. 
+Inspired by Bolton and Chapman's (1986) seminal paper, Bill Benter employed a conditional logistic regression model to predict horse racing outcomes in Hong Kong.^[See Bolton, R.N., & Chapman, R.G.(1986). Searching for  positive returns at the track: A multinomial logistic regression model for handicapping horse races. Management Science, 32(8), pp. 1040-1060.] His innovative approach incorporated the public's estimate, as reflected in betting odds, into his model.^[See Benter, W. (1994). Computer-based horse race handicapping and wagering systems: A report. In: Efficiency of Racetrack Betting Markets, pp. 183-198] 
+
+Bill Benter employed a two-step-approach in incorporating the public estimate via the odds: At first he estimated his own fundamental model on one part of the training data. In the next step he estimated a new model with two predictors, namely the probabilities of his own model and the public estimate for the win probabilities of each horse, on the second part of the training data. For both steps he used a conditional logistic regression.
+
+Following a similar path, we'll attempt to identify market inefficiencies within German horse racing. 
 
 
 
@@ -64,6 +71,7 @@ The following set of features used in the automated variable selection process f
 
 ### Horse-related features
 
+* **`hoattend`**: Horse's experience measured in number of races the horse has attended over their career
 * **`hosr730`**: Horse's strike rate in the last 2 years
 * **`hosr`**: Horse's career strike rate
 * **`homean4sprat`**: Horse's mean speed rating in the last 4 races
@@ -71,9 +79,8 @@ The following set of features used in the automated variable selection process f
 * **`holastsprat`**: Horse's last speed rating
 * **`hofirstrace`**: Indicator if it's the horse's first race
 * **`hodays`**: Number of days since the horse's last race
-* **`draweffect_median`**: The median estimated disadvantage (in terms of lengths) associated with the horse's starting stall compared to the innermost stall
-* **`gag`**: Horse's handicap rating before the race
-* **`gagindicator`**: Takes the value 1 if the horse's current handicap rating is lower than its rating at the time of its most recent win, 0 otherwise
+* **`gag_turf`**: Horse's handicap rating on turf before the race
+* **`gagindicator_turf`**: Takes the value 1 if the horse's current handicap rating on turf is lower than its rating at the time of its most recent win on turf, 0 otherwise
 * **`blinkers1sttime`**: Indicator if the horse is wearing blinkers for the first time
 * **`weight`**: Weight carried by the horse
 
@@ -91,7 +98,8 @@ The following set of features used in the automated variable selection process f
 
 ### Other features
 
-* **`odds`**: Betting odds for the horse
+* **`draweffect_median`**: The median estimated disadvantage (in terms of lengths) associated with the horse's starting stall compared to the innermost stall
+
 
 
 ```{r}
@@ -99,17 +107,17 @@ The following set of features used in the automated variable selection process f
 features <- c(
   # Horse-related features
   "hoattend", "hosr730", "homean4sprat", "homeanearn365", "holastsprat",
-  "hofirstrace", "hodays", "draweffect_median", "gag_turf", "gagindicator_turf", 
-  "blinkers1sttime", "weight", "hohcpclassdrop", "honetgag",
+  "hofirstrace", "hodays", "gag_turf", "gagindicator_turf", 
+  "blinkers1sttime", "weight", 
   
   # Jockey-related features
   "joattend", "josr365", "jowins365", "joam", 
   
   # Trainer-related features
-  "trattend", "trsr", "trmeanearn"
+  "trattend", "trmeanearn",
   
   # Other features
-
+  "draweffect_median"
 )
 ```
 
