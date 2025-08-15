@@ -10,7 +10,7 @@ The goal of this project is to develop a data-driven betting strategy for German
 
 The project involves the following key steps:
 
-1. **Data Acquisition:** Web scraping is used to collect historical race results, horse details, jockey and trainer statistics, and betting odds from the official website of Deutscher Galopp e.V. (See the [`data_acquisition`](data_acquistion) folder for details)
+1. **Data Acquisition:** Web scraping is used to collect historical race results, horse details, jockey and trainer statistics, and betting odds from the official website of Deutscher Galopp e.V. (See the [`data_acquisition`](data_acquisition) folder for details)
 2. **Data Cleaning and Preprocessing:** The raw data is cleaned, transformed, and prepared for analysis. This also includes creating features based on domain expertise and existing literature, and handling missing values. (See the [`data_cleaning`](data_cleaning) and [`data_processing`](data_processing) folders)
 3. **Model Building:**  A conditional logistic regression model is trained on the processed data to predict the probability of each horse winning a race.  
 4. **Model Evaluation & Betting Strategy:** The model's performance is evaluated on unseen data, and a simple betting strategy is implemented based on the model's predictions. The strategy's profitability is assessed through backtesting and statistical analysis.  (See the [`notebooks`](notebooks) folder for steps 3 and 4)
