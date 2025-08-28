@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏇 Indian Racing Benter Model</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .meeting-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .error-message {
+            display: none;
+            color: #dc3545;
+        }
+        .success-message {
+            display: none;
+            color: #198754;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-12">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-horse-head me-3"></i>
+                        Indian Racing Benter Model
+                    </h1>
+                    <p class="lead mb-4">
+                        Advanced probability modeling for Indian horse racing using the Benter methodology
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button class="btn btn-light btn-lg" onclick="refreshData()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh Data
+                        </button>
+                        <button class="btn btn-outline-light btn-lg" onclick="showApiStatus()">
+                            <i class="fas fa-info-circle me-2"></i>API Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Status Messages -->
+        <div id="status-messages">
+            <div id="loading-spinner" class="loading-spinner text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading racing data...</p>
+            </div>
+            
+            <div id="error-message" class="error-message alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span id="error-text"></span>
+            </div>
+            
+            <div id="success-message" class="success-message alert alert-success" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="success-text"></span>
+            </div>
+        </div>
+
+        <!-- API Configuration -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>API Configuration
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label for="api-url" class="form-label">Backend API URL:</label>
+                                <input type="url" class="form-control" id="api-url" 
+                                       value="https://indiaracing-backend-production.up.railway.app" 
+                                       placeholder="Enter your backend API URL">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-primary w-100" onclick="updateApiUrl()">
+                                    <i class="fas fa-save me-2"></i>Update
+                                </button>
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            This should point to your deployed Railway backend. 
+                            <a href="#" onclick="showDeploymentHelp()">Need help deploying?</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meetings Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="mb-3">
+                    <i class="fas fa-calendar-alt me-2"></i>Available Meetings
+                </h2>
+                <div id="meetings-container">
+                    <!-- Meetings will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>Quick Statistics
+                </h2>
+                <div id="stats-container">
+                    <!-- Stats will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="fas fa-code me-2"></i>
+                Built with Flask, Bootstrap, and Plotly.js
+            </p>
+            <p class="mb-0 mt-2">
+                <small class="text-muted">
+                    Indian Racing Benter Model - Advanced Probability Modeling
+                </small>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        let API_BASE = localStorage.getItem('api_url') || 'https://indiaracing-backend-production.up.railway.app';
+        let meetingsData = [];
+        let statsData = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('api-url').value = API_BASE;
+            loadMeetings();
+            loadStats();
+        });
+
+        // API Functions
+        async function loadMeetings() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/meetings`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const meetings = await response.json();
+                meetingsData = meetings;
+                displayMeetings(meetings);
+                showSuccess(`Loaded ${meetings.length} meetings successfully`);
+            } catch (error) {
+                console.error('Error loading meetings:', error);
+                showError(`Failed to load meetings: ${error.message}`);
+                displayMeetings([]);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadStats() {
+            try {
+                if (meetingsData.length === 0) return;
+                
+                let totalRaces = 0;
+                let totalHorses = 0;
+                let processedMeetings = 0;
+
+                for (const meeting of meetingsData) {
+                    if (meeting.has_data) {
+                        try {
+                            const response = await fetch(`${API_BASE}/api/meeting/${meeting.id}/summary`);
+                            if (response.ok) {
+                                const summary = await response.json();
+                                totalRaces += summary.total_races || 0;
+                                totalHorses += summary.total_horses || 0;
+                                processedMeetings++;
+                            }
+                        } catch (e) {
+                            console.warn(`Could not load stats for ${meeting.id}:`, e);
+                        }
+                    }
+                }
+
+                statsData = {
+                    totalMeetings: meetingsData.length,
+                    processedMeetings,
+                    totalRaces,
+                    totalHorses
+                };
+
+                displayStats(statsData);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Display Functions
+        function displayMeetings(meetings) {
+            const container = document.getElementById('meetings-container');
+            
+            if (meetings.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No meetings available. Make sure your backend API is running and has data.
+                    </div>
+                `;
+                return;
+            }
+
+            const html = meetings.map(meeting => `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card meeting-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-flag-checkered me-2"></i>
+                                ${meeting.name}
+                            </h5>
+                            <p class="card-text">
+                                <i class="fas fa-calendar me-2"></i>
+                                Date: ${meeting.date.join('-')}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge ${meeting.has_data ? 'bg-success' : 'bg-warning'}">
+                                    <i class="fas ${meeting.has_data ? 'fa-check' : 'fa-clock'} me-1"></i>
+                                    ${meeting.has_data ? 'Data Available' : 'Processing'}
+                                </span>
+                                <button class="btn btn-light btn-sm" 
+                                        onclick="viewMeeting('${meeting.id}')"
+                                        ${!meeting.has_data ? 'disabled' : ''}>
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="row">
+                    ${html}
+                </div>
+            `;
+        }
+
+        function displayStats(stats) {
+            const container = document.getElementById('stats-container');
+            
+            container.innerHTML = `
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                                <h3 class="mb-1">${stats.totalMeetings}</h3>
+                                <p class="mb-0">Total Meetings</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                <h3 class="mb-1">${stats.processedMeetings}</h3>
+                                <p class="mb-0">Processed</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-flag-checkered fa-2x mb-2"></i>
+                                <h3 class="mb-1">${stats.totalRaces}</h3>
+                                <p class="mb-0">Total Races</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-horse fa-2x mb-2"></i>
+                                <h3 class="mb-1">${stats.totalHorses}</h3>
+                                <p class="mb-0">Total Horses</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Utility Functions
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            document.getElementById('success-text').textContent = message;
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        function updateApiUrl() {
+            const newUrl = document.getElementById('api-url').value.trim();
+            if (newUrl) {
+                API_BASE = newUrl;
+                localStorage.setItem('api_url', newUrl);
+                showSuccess('API URL updated successfully');
+                loadMeetings();
+                loadStats();
+            } else {
+                showError('Please enter a valid API URL');
+            }
+        }
+
+        function refreshData() {
+            loadMeetings();
+            loadStats();
+        }
+
+        function viewMeeting(meetingId) {
+            window.open(`${API_BASE}/meeting/${meetingId}`, '_blank');
+        }
+
+        function showApiStatus() {
+            const status = {
+                url: API_BASE,
+                timestamp: new Date().toISOString(),
+                meetings: meetingsData.length,
+                stats: statsData
+            };
+            alert(`API Status:\n${JSON.stringify(status, null, 2)}`);
+        }
+
+        function showDeploymentHelp() {
+            alert(`To deploy your backend to Railway:
+
+1. Install Railway CLI: npm install -g @railway/cli
+2. Login: railway login
+3. Initialize: railway init
+4. Deploy: railway up
+
+Your app will get a URL like: https://your-app-name.up.railway.app
+
+Then update the API URL above with your Railway URL.`);
+        }
+    </script>
+</body>
+</html>

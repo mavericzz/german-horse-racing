@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meeting_name }} - Indian Racing Benter Model{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                    <li class="breadcrumb-item active">{{ meeting_name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Meeting Overview -->
+<div class="container mb-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-flag-checkered"></i> {{ meeting_name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="stats-card p-3 rounded">
+                                <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
+                                <h4>{{ summary.total_races }}</h4>
+                                <p class="mb-0 text-muted">Total Races</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="stats-card p-3 rounded">
+                                <i class="fas fa-horse fa-2x text-success mb-2"></i>
+                                <h4>{{ summary.total_horses }}</h4>
+                                <p class="mb-0 text-muted">Total Horses</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="stats-card p-3 rounded">
+                                <i class="fas fa-ruler fa-2x text-warning mb-2"></i>
+                                <h6>{{ summary.distance_range }}</h6>
+                                <p class="mb-0 text-muted">Distance Range</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="stats-card p-3 rounded">
+                                <i class="fas fa-chart-pie fa-2x text-info mb-2"></i>
+                                <h4>{{ "%.1f"|format(summary.avg_horses_per_race) }}</h4>
+                                <p class="mb-0 text-muted">Avg per Race</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Races -->
+<div class="container mb-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy"></i> Race Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for race in summary.races %}
+                        <div class="col-md-6">
+                            <div class="card race-card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        Race {{ race.race_no }}: {{ race.race_name }}
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">Distance</small>
+                                            <p class="mb-0"><strong>{{ race.distance }}m</strong></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Runners</small>
+                                            <p class="mb-0"><strong>{{ race.runners }}</strong></p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">Top Pick</small>
+                                        <p class="mb-0">
+                                            <strong>{{ race.top_pick }}</strong>
+                                            <span class="badge bg-warning ms-2">
+                                                {{ "%.1f"|format(race.top_pick_prob * 100) }}%
+                                            </span>
+                                        </p>
+                                        <small class="text-muted">
+                                            Rating: {{ race.top_pick_rating }} | Weight: {{ race.top_pick_weight }}kg
+                                        </small>
+                                    </div>
+                                    
+                                    {% if race.has_results %}
+                                    <div class="mb-3">
+                                        <small class="text-muted">Result</small>
+                                        <p class="mb-0">
+                                            {% if race.correct_pick %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check"></i> Correct!
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    Position: {{ race.top_pick_position }}
+                                                </span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="mt-3">
+                                        <button class="btn btn-primary btn-sm w-100" 
+                                                onclick="loadRaceData('{{ meeting_id }}', {{ race.race_no }})">
+                                            <i class="fas fa-chart-bar"></i> View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Race Details Modal -->
+<div class="modal fade" id="raceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="raceModalTitle">Race Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="raceLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading race data...</p>
+                </div>
+                
+                <div id="raceContent" style="display: none;">
+                    <!-- Race Info -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Race:</strong> <span id="raceNumber"></span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Name:</strong> <span id="raceName"></span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Distance:</strong> <span id="raceDistance"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Probability Comparison</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="raceChart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Horse Table -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Horse Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped horse-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Horse</th>
+                                                    <th>Age</th>
+                                                    <th>Rating</th>
+                                                    <th>Weight</th>
+                                                    <th>Market Prob</th>
+                                                    <th>Prior Prob</th>
+                                                    <th>Posterior Prob</th>
+                                                    <th>Kelly Stake</th>
+                                                    {% if summary.races[0].has_results %}
+                                                    <th>Position</th>
+                                                    {% endif %}
+                                                </tr>
+                                            </thead>
+                                            <tbody id="horseTableBody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function loadRaceData(meetingId, raceNo) {
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('raceModal'));
+        modal.show();
+        
+        // Show loading
+        document.getElementById('raceLoading').style.display = 'block';
+        document.getElementById('raceContent').style.display = 'none';
+        
+        // Load race data
+        fetch(`/api/race/${meetingId}/${raceNo}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showToast(data.error, 'danger');
+                    return;
+                }
+                
+                // Update race info
+                document.getElementById('raceNumber').textContent = data.race_info.race_no;
+                document.getElementById('raceName').textContent = data.race_info.race_name;
+                document.getElementById('raceDistance').textContent = data.race_info.distance + 'm';
+                
+                // Create chart
+                const chartData = JSON.parse(data.chart);
+                Plotly.newPlot('raceChart', chartData.data, chartData.layout);
+                
+                // Populate horse table
+                populateHorseTable(data.race_data);
+                
+                // Show content
+                document.getElementById('raceLoading').style.display = 'none';
+                document.getElementById('raceContent').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Failed to load race data', 'danger');
+                document.getElementById('raceLoading').style.display = 'none';
+            });
+    }
+    
+    function populateHorseTable(raceData) {
+        const tbody = document.getElementById('horseTableBody');
+        tbody.innerHTML = '';
+        
+        raceData.forEach(horse => {
+            const row = document.createElement('tr');
+            
+            // Highlight top pick
+            if (horse.p_posterior === Math.max(...raceData.map(h => h.p_posterior))) {
+                row.classList.add('table-warning');
+            }
+            
+            row.innerHTML = `
+                <td><strong>${horse.horse}</strong></td>
+                <td>${horse.age}y</td>
+                <td>${horse.rating}</td>
+                <td>${horse.weight_kg}kg</td>
+                <td>
+                    <span class="probability-badge market-prob">
+                        ${formatProbability(horse.p_market)}
+                    </span>
+                </td>
+                <td>
+                    <span class="probability-badge prior-prob">
+                        ${formatProbability(horse.p_prior)}
+                    </span>
+                </td>
+                <td>
+                    <span class="probability-badge posterior-prob">
+                        ${formatProbability(horse.p_posterior)}
+                    </span>
+                </td>
+                <td>
+                    ${horse.kelly_stake ? (horse.kelly_stake * 100).toFixed(1) + '%' : 'N/A'}
+                </td>
+                ${horse.pos !== undefined ? `<td>${horse.pos === 1 ? '🥇' : horse.pos === 2 ? '🥈' : horse.pos === 3 ? '🥉' : horse.pos}</td>` : ''}
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Auto-refresh meeting data every 60 seconds
+    setInterval(() => {
+        // Only refresh if user is on the meeting page
+        if (window.location.pathname.startsWith('/meeting/')) {
+            // Silent refresh - don't show loading
+        }
+    }, 60000);
+</script>
+{% endblock %}

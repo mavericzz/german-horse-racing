@@ -1,0 +1,30 @@
+# India Racing Configuration
+racing:
+  venues:
+    - kolkata
+    - pune
+    - bengaluru
+    - mumbai
+    - delhi
+  
+  # Race types and distances
+  race_types:
+    - "Terms"
+    - "Rated"
+    - "Handicap"
+    - "Classic"
+  
+  # Default parameters
+  defaults:
+    min_odds: 0.01
+    max_odds: 0.99
+    default_market_prob: 0.08
+    min_prior_prob: 0.01
+  
+  # Feature engineering
+  features:
+    rating_weight: 0.006
+    weight_penalty_route: 0.010
+    weight_penalty_sprint: 0.006
+    age_bonus_3yo_route: 0.02
+    base_prior: 0.20

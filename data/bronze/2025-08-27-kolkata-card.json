@@ -1,0 +1,83 @@
+[
+  {
+    "race_no": 1,
+    "race_name": "KOLKATA CUP (1600m) Rated 20-45 Terms",
+    "dist_m": 1600,
+    "horse": "SPEED DEMON",
+    "age": 3,
+    "rating": 45,
+    "weight_kg": 55.5
+  },
+  {
+    "race_no": 1,
+    "race_name": "KOLKATA CUP (1600m) Rated 20-45 Terms",
+    "dist_m": 1600,
+    "horse": "FLYING ACE",
+    "age": 4,
+    "rating": 42,
+    "weight_kg": 56.0
+  },
+  {
+    "race_no": 1,
+    "race_name": "KOLKATA CUP (1600m) Rated 20-45 Terms",
+    "dist_m": 1600,
+    "horse": "GOLDEN STAR",
+    "age": 3,
+    "rating": 38,
+    "weight_kg": 54.5
+  },
+  {
+    "race_no": 1,
+    "race_name": "KOLKATA CUP (1600m) Rated 20-45 Terms",
+    "dist_m": 1600,
+    "horse": "SILVER BULLET",
+    "age": 5,
+    "rating": 35,
+    "weight_kg": 57.0
+  },
+  {
+    "race_no": 1,
+    "race_name": "KOLKATA CUP (1600m) Rated 20-45 Terms",
+    "dist_m": 1600,
+    "horse": "THUNDER BOLT",
+    "age": 4,
+    "rating": 40,
+    "weight_kg": 55.0
+  },
+  {
+    "race_no": 2,
+    "race_name": "SPRINT CHALLENGE (1200m) Rated 15-35 Handicap",
+    "dist_m": 1200,
+    "horse": "LIGHTNING FAST",
+    "age": 3,
+    "rating": 32,
+    "weight_kg": 53.5
+  },
+  {
+    "race_no": 2,
+    "race_name": "SPRINT CHALLENGE (1200m) Rated 15-35 Handicap",
+    "dist_m": 1200,
+    "horse": "RAPID FIRE",
+    "age": 4,
+    "rating": 28,
+    "weight_kg": 54.0
+  },
+  {
+    "race_no": 2,
+    "race_name": "SPRINT CHALLENGE (1200m) Rated 15-35 Handicap",
+    "dist_m": 1200,
+    "horse": "SWIFT WIND",
+    "age": 3,
+    "rating": 25,
+    "weight_kg": 52.5
+  },
+  {
+    "race_no": 2,
+    "race_name": "SPRINT CHALLENGE (1200m) Rated 15-35 Handicap",
+    "dist_m": 1200,
+    "horse": "BLAZING TRAIL",
+    "age": 5,
+    "rating": 22,
+    "weight_kg": 55.0
+  }
+]

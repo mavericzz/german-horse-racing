@@ -1,0 +1,66 @@
+[
+  {
+    "race_no": 1,
+    "runners": [
+      {
+        "horse": "SPEED DEMON",
+        "p_night": 0.25,
+        "p_morning": 0.2857142857142857,
+        "p_opening": 0.3333333333333333
+      },
+      {
+        "horse": "FLYING ACE",
+        "p_night": 0.2,
+        "p_morning": 0.2222222222222222,
+        "p_opening": 0.25
+      },
+      {
+        "horse": "GOLDEN STAR",
+        "p_night": 0.14285714285714285,
+        "p_morning": 0.16666666666666666,
+        "p_opening": 0.2
+      },
+      {
+        "horse": "SILVER BULLET",
+        "p_night": 0.1111111111111111,
+        "p_morning": 0.125,
+        "p_opening": 0.14285714285714285
+      },
+      {
+        "horse": "THUNDER BOLT",
+        "p_night": 0.16666666666666666,
+        "p_morning": 0.18181818181818182,
+        "p_opening": 0.2
+      }
+    ]
+  },
+  {
+    "race_no": 2,
+    "runners": [
+      {
+        "horse": "LIGHTNING FAST",
+        "p_night": 0.3333333333333333,
+        "p_morning": 0.36363636363636365,
+        "p_opening": 0.4
+      },
+      {
+        "horse": "RAPID FIRE",
+        "p_night": 0.2857142857142857,
+        "p_morning": 0.3333333333333333,
+        "p_opening": 0.36363636363636365
+      },
+      {
+        "horse": "SWIFT WIND",
+        "p_night": 0.2,
+        "p_morning": 0.2222222222222222,
+        "p_opening": 0.25
+      },
+      {
+        "horse": "BLAZING TRAIL",
+        "p_night": 0.14285714285714285,
+        "p_morning": 0.16666666666666666,
+        "p_opening": 0.2
+      }
+    ]
+  }
+]

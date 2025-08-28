@@ -1,0 +1,48 @@
+[
+  {
+    "race_no": 1,
+    "placings": [
+      {
+        "pos": 1,
+        "horse": "SPEED DEMON"
+      },
+      {
+        "pos": 2,
+        "horse": "FLYING ACE"
+      },
+      {
+        "pos": 3,
+        "horse": "GOLDEN STAR"
+      },
+      {
+        "pos": 4,
+        "horse": "THUNDER BOLT"
+      },
+      {
+        "pos": 5,
+        "horse": "SILVER BULLET"
+      }
+    ]
+  },
+  {
+    "race_no": 2,
+    "placings": [
+      {
+        "pos": 1,
+        "horse": "LIGHTNING FAST"
+      },
+      {
+        "pos": 2,
+        "horse": "RAPID FIRE"
+      },
+      {
+        "pos": 3,
+        "horse": "SWIFT WIND"
+      },
+      {
+        "pos": 4,
+        "horse": "BLAZING TRAIL"
+      }
+    ]
+  }
+]
