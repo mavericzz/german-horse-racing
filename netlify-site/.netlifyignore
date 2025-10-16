@@ -1,0 +1,15 @@
+# Ignore Python files and dependencies
+../requirements.txt
+../*.py
+../**/*.py
+../data/
+../notebooks/
+../scripts/
+../india/
+../data_acquisition/
+../data_cleaning/
+../data_processing/
+../documentation/
+../netlify-site/../*.R
+../netlify-site/../*.Rmd
+../netlify-site/../*.ipynb

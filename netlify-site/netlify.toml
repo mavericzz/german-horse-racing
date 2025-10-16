@@ -1,13 +1,24 @@
 [build]
   publish = "."
+  command = "echo 'Static site - no build required'"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
+# Explicitly disable Python detection
 [build.environment]
   NODE_VERSION = "18"
+  PYTHON_VERSION = ""
+  # Disable Python build detection
+  PIPENV_DISABLE = "1"
+  POETRY_DISABLE = "1"
+
+# Disable all build processing
+[build.processing]
+  skip_processing = true
+
+# Use _redirects file instead of netlify.toml redirects
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
 
 [[headers]]
   for = "/*"

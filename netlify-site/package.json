@@ -1,0 +1,13 @@
+{
+  "name": "indian-racing-frontend",
+  "version": "1.0.0",
+  "description": "Static frontend for Indian Racing Benter Model",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build required'",
+    "start": "echo 'Static site - serve index.html'"
+  },
+  "keywords": ["racing", "benter", "static", "frontend"],
+  "author": "Rahul Sharma",
+  "license": "MIT"
+}
